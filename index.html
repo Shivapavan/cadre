@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadre — The Job Platform Built for Senior Engineers</title>
+<style>
+:root {
+  --navy:       #0F172A;
+  --navy-light: #1E293B;
+  --navy-mid:   #334155;
+  --indigo:     #6366F1;
+  --indigo-d:   #4F46E5;
+  --indigo-l:   #A5B4FC;
+  --gold:       #F59E0B;
+  --gold-l:     #FDE68A;
+  --emerald:    #10B981;
+  --rose:       #F43F5E;
+  --slate:      #94A3B8;
+  --slate-l:    #CBD5E1;
+  --white:      #FFFFFF;
+  --surface:    #F8FAFC;
+  --border:     #E2E8F0;
+  --ease:       cubic-bezier(0.4,0,0.2,1);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--white);color:var(--navy);line-height:1.6;-webkit-font-smoothing:antialiased}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(15,23,42,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06);padding:0 2rem}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:64px}
+.nav-logo{font-size:1.35rem;font-weight:800;color:var(--white);letter-spacing:-0.03em;text-decoration:none}
+.nav-logo span{color:var(--indigo)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{color:var(--slate-l);text-decoration:none;font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--white)}
+.nav-actions{display:flex;gap:.75rem;align-items:center}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.15);color:var(--slate-l);padding:.5rem 1.1rem;border-radius:8px;font-size:.875rem;font-weight:500;cursor:pointer;text-decoration:none;transition:all .2s}
+.btn-ghost:hover{border-color:rgba(255,255,255,0.35);color:var(--white)}
+.btn-primary{background:var(--indigo);color:var(--white);padding:.5rem 1.25rem;border-radius:8px;font-size:.875rem;font-weight:600;cursor:pointer;border:none;text-decoration:none;transition:all .2s}
+.btn-primary:hover{background:var(--indigo-d);transform:translateY(-1px);box-shadow:0 4px 16px rgba(99,102,241,0.4)}
+
+/* HERO */
+.hero{min-height:100vh;background:var(--navy);display:flex;align-items:center;padding:120px 2rem 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-200px;right:-100px;width:700px;height:700px;background:radial-gradient(circle,rgba(99,102,241,0.12) 0%,transparent 70%);pointer-events:none}
+.hero::after{content:'';position:absolute;bottom:-200px;left:-100px;width:500px;height:500px;background:radial-gradient(circle,rgba(245,158,11,0.07) 0%,transparent 70%);pointer-events:none}
+.hero-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.25);color:var(--indigo-l);padding:.35rem .9rem;border-radius:999px;font-size:.8rem;font-weight:600;letter-spacing:.04em;margin-bottom:1.5rem}
+.hero-badge::before{content:'';width:6px;height:6px;background:var(--indigo);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+h1{font-size:3.6rem;font-weight:800;line-height:1.1;letter-spacing:-0.04em;color:var(--white);margin-bottom:1.5rem}
+h1 em{font-style:normal;background:linear-gradient(135deg,var(--indigo-l),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:1.15rem;color:var(--slate);line-height:1.7;margin-bottom:2.5rem;max-width:480px}
+.hero-cta{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:3rem}
+.btn-lg{padding:.85rem 2rem;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .25s var(--ease)}
+.btn-indigo{background:var(--indigo);color:var(--white);border:none}
+.btn-indigo:hover{background:var(--indigo-d);transform:translateY(-2px);box-shadow:0 8px 24px rgba(99,102,241,0.4)}
+.btn-outline{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,0.2)}
+.btn-outline:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.4)}
+.hero-stats{display:flex;gap:2.5rem}
+.stat-item{}
+.stat-num{font-size:1.8rem;font-weight:800;color:var(--white);line-height:1}
+.stat-label{font-size:.8rem;color:var(--slate);margin-top:.25rem}
+
+/* HERO DASHBOARD MOCKUP */
+.hero-visual{position:relative}
+.dashboard-card{background:var(--navy-light);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.5)}
+.dash-header{background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06);padding:1rem 1.5rem;display:flex;align-items:center;gap:.75rem}
+.dash-dots{display:flex;gap:.4rem}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot-r{background:#FF5F57}
+.dot-y{background:#FEBC2E}
+.dot-g{background:#28C840}
+.dash-title{font-size:.8rem;color:var(--slate);font-weight:500;margin-left:.5rem}
+.dash-body{padding:1.25rem}
+.dash-tabs{display:flex;gap:.25rem;margin-bottom:1.25rem}
+.dash-tab{padding:.4rem .9rem;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--slate)}
+.dash-tab.active{background:var(--indigo);color:var(--white)}
+.job-card-mini{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:1rem;margin-bottom:.75rem;display:flex;align-items:center;gap:1rem;transition:all .2s}
+.job-card-mini:hover{background:rgba(255,255,255,0.07);border-color:rgba(99,102,241,0.3)}
+.company-logo-mini{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--white);flex-shrink:0}
+.jcm-info{flex:1;min-width:0}
+.jcm-title{font-size:.85rem;font-weight:600;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jcm-company{font-size:.75rem;color:var(--slate);margin-top:.1rem}
+.jcm-right{text-align:right;flex-shrink:0}
+.match-badge{font-size:.72rem;font-weight:700;padding:.2rem .5rem;border-radius:5px}
+.match-high{background:rgba(16,185,129,0.15);color:var(--emerald)}
+.match-mid{background:rgba(245,158,11,0.15);color:var(--gold)}
+.jcm-salary{font-size:.72rem;color:var(--slate);margin-top:.2rem}
+.dash-footer{border-top:1px solid rgba(255,255,255,0.06);padding:.85rem 1.25rem;display:flex;justify-content:space-between;align-items:center}
+.dash-foot-stat{font-size:.75rem;color:var(--slate)}
+.dash-foot-stat strong{color:var(--indigo-l)}
+
+/* TRUST BAR */
+.trust{background:var(--navy-light);border-top:1px solid rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.05);padding:1.5rem 2rem}
+.trust-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:3rem}
+.trust-label{font-size:.75rem;color:var(--slate);font-weight:600;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.trust-logos{display:flex;align-items:center;gap:2.5rem;overflow:hidden}
+.trust-logo{font-size:.85rem;font-weight:700;color:rgba(148,163,184,0.5);letter-spacing:.02em;white-space:nowrap}
+
+/* SECTION */
+section{padding:5rem 2rem}
+.section-inner{max-width:1200px;margin:0 auto}
+.section-label{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--indigo);margin-bottom:.75rem}
+.section-title{font-size:2.5rem;font-weight:800;line-height:1.15;letter-spacing:-0.03em;color:var(--navy);margin-bottom:1rem}
+.section-sub{font-size:1.05rem;color:#64748B;max-width:520px;line-height:1.7}
+
+/* FEATURES */
+.features{background:var(--surface)}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem}
+.feature-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:1.75rem;transition:all .3s var(--ease)}
+.feature-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.08);border-color:var(--indigo-l)}
+.feature-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1.25rem}
+.icon-indigo{background:rgba(99,102,241,0.1)}
+.icon-gold{background:rgba(245,158,11,0.1)}
+.icon-emerald{background:rgba(16,185,129,0.1)}
+.icon-rose{background:rgba(244,63,94,0.1)}
+.icon-violet{background:rgba(139,92,246,0.1)}
+.icon-sky{background:rgba(14,165,233,0.1)}
+.feature-title{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:.5rem}
+.feature-desc{font-size:.9rem;color:#64748B;line-height:1.6}
+
+/* JOBS SECTION */
+.jobs-section{background:var(--white)}
+.jobs-controls{display:flex;gap:.6rem;margin:1.25rem 0 0;flex-wrap:wrap;align-items:center}
+.emp-filter-bar{margin-top:.6rem!important;padding-top:.75rem;border-top:1px solid var(--border)}
+.emp-filter-label{font-size:.75rem;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.05em;margin-right:.25rem;white-space:nowrap}
+.filter-pill{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:.4rem .9rem;font-size:.8rem;font-weight:500;color:#475569;cursor:pointer;transition:all .2s}
+.filter-pill.active,.filter-pill:hover{background:var(--navy);color:var(--white);border-color:var(--navy)}
+.emp-pill{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:.35rem .85rem;font-size:.78rem;font-weight:500;color:#475569;cursor:pointer;transition:all .2s}
+.emp-pill:hover{background:#F1F5F9;border-color:#94A3B8}
+.emp-pill.active{background:var(--indigo);color:var(--white);border-color:var(--indigo)}
+.emp-pill-c2c.active{background:#D97706;color:var(--white);border-color:#D97706}
+.emp-pill-c2c:hover{background:#FEF3C7;border-color:#FCD34D;color:#92400E}
+.jobs-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem}
+.job-card{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:1.5rem;cursor:pointer;transition:all .3s var(--ease);position:relative;overflow:hidden}
+.job-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--indigo),var(--gold));opacity:0;transition:opacity .3s}
+.job-card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(0,0,0,0.1);border-color:var(--indigo-l)}
+.job-card:hover::before{opacity:1}
+.job-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+.company-info{display:flex;align-items:center;gap:.85rem}
+.company-logo{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:800;color:var(--white)}
+.company-name{font-size:.9rem;font-weight:700;color:var(--navy)}
+.company-stage{font-size:.72rem;color:var(--slate);margin-top:.1rem}
+.match-score{display:flex;flex-direction:column;align-items:flex-end;gap:.25rem}
+.match-pct{font-size:1.3rem;font-weight:800;color:var(--emerald)}
+.match-lbl{font-size:.7rem;color:var(--slate);font-weight:500}
+.job-title{font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:.5rem}
+.job-meta{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem}
+.meta-tag{display:inline-flex;align-items:center;gap:.35rem;font-size:.75rem;color:#64748B;background:var(--surface);padding:.25rem .65rem;border-radius:6px;font-weight:500}
+.job-salary{font-size:.95rem;font-weight:700;color:var(--navy);margin-bottom:.75rem}
+.salary-range{color:var(--emerald)}
+.job-skills{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.skill-tag{font-size:.72rem;font-weight:600;background:rgba(99,102,241,0.08);color:var(--indigo);padding:.25rem .65rem;border-radius:5px}
+.job-footer{display:flex;justify-content:space-between;align-items:center}
+.posted-time{font-size:.75rem;color:var(--slate)}
+.apply-btn{background:var(--navy);color:var(--white);border:none;padding:.5rem 1.1rem;border-radius:8px;font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s}
+.apply-btn:hover{background:var(--indigo);transform:translateY(-1px)}
+.remote-badge{background:rgba(16,185,129,0.1);color:var(--emerald);font-size:.72rem;font-weight:700;padding:.2rem .6rem;border-radius:5px}
+.new-badge{background:rgba(245,158,11,0.1);color:var(--gold);font-size:.7rem;font-weight:700;padding:.2rem .55rem;border-radius:5px;border:1px solid rgba(245,158,11,0.2)}
+
+/* HOW IT WORKS */
+.how-it-works{background:var(--navy);color:var(--white)}
+.how-it-works .section-title{color:var(--white)}
+.how-it-works .section-sub{color:var(--slate)}
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;margin-top:3rem}
+.step-card{text-align:center;padding:2rem 1.5rem;border-radius:16px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);transition:all .3s}
+.step-card:hover{background:rgba(255,255,255,0.06);border-color:rgba(99,102,241,0.3);transform:translateY(-4px)}
+.step-num{width:48px;height:48px;border-radius:12px;background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);color:var(--indigo-l);font-size:1.1rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem}
+.step-title{font-size:1rem;font-weight:700;color:var(--white);margin-bottom:.5rem}
+.step-desc{font-size:.875rem;color:var(--slate);line-height:1.6}
+
+/* SALARY INTEL */
+.salary-section{background:var(--surface)}
+.salary-table{margin-top:2.5rem;background:var(--white);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.salary-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:1rem;padding:1rem 1.5rem;align-items:center;border-bottom:1px solid var(--border);transition:background .2s}
+.salary-row:last-child{border-bottom:none}
+.salary-row:hover{background:var(--surface)}
+.salary-row.header{background:var(--navy);border-bottom:none}
+.salary-row.header span{color:var(--slate-l);font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.role-cell{font-weight:600;color:var(--navy);font-size:.9rem}
+.lvl-cell{font-size:.8rem;color:var(--slate)}
+.tc-cell{font-weight:700;color:var(--emerald);font-size:.9rem}
+.base-cell{font-size:.85rem;color:var(--navy)}
+.rsp-cell{font-size:.8rem;color:var(--slate)}
+.yoe-cell{font-size:.8rem;color:var(--slate)}
+
+/* INTEL CARDS */
+.intel-section{background:var(--white)}
+.intel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2.5rem}
+.intel-card{border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .3s var(--ease)}
+.intel-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.1)}
+.intel-header{padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem}
+.intel-logo{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;color:var(--white)}
+.intel-company{font-weight:700;color:var(--navy);font-size:.95rem}
+.intel-stage{font-size:.72rem;color:var(--slate)}
+.intel-body{padding:0 1.5rem 1.5rem}
+.intel-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--surface)}
+.intel-row:last-child{border-bottom:none}
+.intel-key{font-size:.78rem;color:var(--slate);font-weight:500}
+.intel-val{font-size:.82rem;font-weight:600;color:var(--navy)}
+.intel-good{color:var(--emerald)}
+.intel-warn{color:var(--gold)}
+
+/* PRICING */
+.pricing{background:var(--navy)}
+.pricing .section-title{color:var(--white)}
+.pricing .section-sub{color:var(--slate)}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem}
+.price-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:2rem;position:relative;transition:all .3s}
+.price-card.featured{background:var(--indigo);border-color:transparent;transform:scale(1.03)}
+.price-card.featured .price-desc,.price-card.featured .price-feature{color:rgba(255,255,255,0.85)}
+.featured-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--navy);font-size:.72rem;font-weight:800;padding:.3rem .85rem;border-radius:999px;letter-spacing:.04em}
+.price-tier{font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--slate);margin-bottom:.75rem}
+.price-card.featured .price-tier{color:rgba(255,255,255,0.7)}
+.price-amount{font-size:3rem;font-weight:800;color:var(--white);line-height:1;letter-spacing:-0.04em}
+.price-period{font-size:.85rem;color:var(--slate);margin-bottom.75rem}
+.price-card.featured .price-period{color:rgba(255,255,255,0.7)}
+.price-desc{font-size:.875rem;color:var(--slate);margin:1rem 0 1.5rem;line-height:1.6}
+.price-features{list-style:none;margin-bottom:2rem}
+.price-feature{font-size:.85rem;color:var(--slate-l);padding:.4rem 0;display:flex;align-items:center;gap:.6rem}
+.price-feature::before{content:'✓';color:var(--emerald);font-weight:700;flex-shrink:0}
+.price-card.featured .price-feature::before{color:var(--gold-l)}
+.price-cta{width:100%;padding:.85rem;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;border:none;transition:all .2s}
+.price-cta-light{background:var(--indigo);color:var(--white)}
+.price-cta-light:hover{background:var(--indigo-d)}
+.price-cta-white{background:var(--white);color:var(--indigo-d)}
+.price-cta-white:hover{background:rgba(255,255,255,0.9)}
+.price-cta-outline{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,0.2)}
+.price-cta-outline:hover{background:rgba(255,255,255,0.06)}
+
+/* CTA */
+.cta-section{background:linear-gradient(135deg,var(--indigo-d),#7C3AED);padding:5rem 2rem;text-align:center}
+.cta-section h2{font-size:2.8rem;font-weight:800;color:var(--white);letter-spacing:-0.04em;margin-bottom:1rem}
+.cta-section p{font-size:1.1rem;color:rgba(255,255,255,0.75);margin-bottom:2.5rem}
+.cta-form{display:flex;gap:.75rem;justify-content:center;max-width:480px;margin:0 auto}
+.cta-input{flex:1;padding:.85rem 1.25rem;border-radius:10px;border:none;font-size:.95rem;background:rgba(255,255,255,0.1);color:var(--white);outline:none;backdrop-filter:blur(8px)}
+.cta-input::placeholder{color:rgba(255,255,255,0.4)}
+.cta-input:focus{background:rgba(255,255,255,0.15)}
+.cta-btn{background:var(--white);color:var(--indigo-d);padding:.85rem 1.75rem;border-radius:10px;font-size:.95rem;font-weight:700;border:none;cursor:pointer;white-space:nowrap;transition:all .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.2)}
+
+/* FOOTER */
+footer{background:var(--navy);border-top:1px solid rgba(255,255,255,0.06);padding:3rem 2rem}
+.footer-inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem}
+.footer-brand .nav-logo{display:inline-block;margin-bottom:1rem}
+.footer-brand p{font-size:.85rem;color:var(--slate);line-height:1.6;max-width:240px}
+.footer-col h4{font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--slate);margin-bottom:1rem}
+.footer-col a{display:block;font-size:.875rem;color:rgba(148,163,184,0.7);text-decoration:none;margin-bottom:.5rem;transition:color .2s}
+.footer-col a:hover{color:var(--white)}
+.footer-bottom{max-width:1200px;margin:2rem auto 0;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center}
+.footer-copy{font-size:.8rem;color:var(--slate)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;padding:2rem;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--white);border-radius:20px;width:100%;max-width:720px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:1.75rem 2rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start}
+.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--slate);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:var(--surface);color:var(--navy)}
+.modal-body{padding:2rem}
+.modal-section{margin-bottom:2rem}
+.modal-section h4{font-size:.8rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--slate);margin-bottom:.85rem}
+.intel-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.intel-chip{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem}
+.intel-chip-label{font-size:.72rem;color:var(--slate);font-weight:500;margin-bottom:.2rem}
+.intel-chip-val{font-size:.95rem;font-weight:700;color:var(--navy)}
+.ai-tailor-box{background:linear-gradient(135deg,rgba(99,102,241,0.06),rgba(245,158,11,0.04));border:1px solid rgba(99,102,241,0.2);border-radius:12px;padding:1.25rem}
+.ai-tailor-box h4{color:var(--indigo);margin-bottom:.75rem}
+.tailor-items{display:flex;flex-direction:column;gap:.5rem}
+.tailor-item{display:flex;align-items:center;gap:.75rem;font-size:.85rem;color:#475569}
+.tailor-item::before{content:'✦';color:var(--indigo);font-size:.7rem}
+.apply-action{width:100%;padding:1rem;background:var(--indigo);color:var(--white);border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;margin-top:1rem}
+.apply-action:hover{background:var(--indigo-d);transform:translateY(-1px);box-shadow:0 8px 24px rgba(99,102,241,0.4)}
+
+/* TRACKER */
+.tracker-section{background:var(--surface)}
+.tracker-board{display:grid;grid-template-columns:repeat(4,1fr);gap:1.25rem;margin-top:2rem}
+.tracker-col{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.tracker-col-header{padding:.85rem 1rem;font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.col-applied{background:#EEF2FF;color:#4338CA}
+.col-screening{background:#FFF7ED;color:#C2410C}
+.col-interview{background:#F0FDF4;color:#15803D}
+.col-offer{background:#FDF4FF;color:#7E22CE}
+.tracker-col-body{padding:.75rem}
+.tracker-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:.85rem;margin-bottom:.6rem;cursor:pointer;transition:all .2s}
+.tracker-card:hover{border-color:var(--indigo-l);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+.tc-company{font-size:.78rem;font-weight:700;color:var(--navy)}
+.tc-role{font-size:.72rem;color:var(--slate);margin:.15rem 0}
+.tc-meta{display:flex;justify-content:space-between;align-items:center;margin-top:.5rem}
+.tc-date{font-size:.7rem;color:var(--slate)}
+.tc-action{font-size:.68rem;font-weight:600;padding:.18rem .45rem;border-radius:4px}
+.act-none{background:#EEF2FF;color:#4338CA}
+.act-prep{background:#FFF7ED;color:#C2410C}
+.act-live{background:#F0FDF4;color:#15803D}
+.act-comp{background:#FDF4FF;color:#7E22CE}
+.col-count{background:rgba(0,0,0,0.08);border-radius:999px;padding:.1rem .45rem;font-size:.7rem}
+
+/* SEARCH */
+.search-wrap{margin:2rem 0 1rem}
+.search-box{position:relative;display:flex;align-items:center;background:var(--white);border:2px solid var(--border);border-radius:14px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.search-box:focus-within{border-color:var(--indigo);box-shadow:0 0 0 4px rgba(99,102,241,0.1)}
+.search-icon{padding:0 1rem;font-size:1.1rem;color:var(--slate);flex-shrink:0}
+.search-input{flex:1;padding:1rem .5rem;border:none;outline:none;font-size:1rem;color:var(--navy);background:transparent}
+.search-input::placeholder{color:#94A3B8}
+.search-clear{background:none;border:none;padding:0 1.1rem;color:var(--slate);cursor:pointer;font-size:1rem;display:none;transition:color .2s}
+.search-clear:hover{color:var(--navy)}
+.search-count{font-size:.82rem;color:var(--slate);margin-top:.5rem;min-height:1.2rem}
+.no-results{text-align:center;padding:4rem 2rem;color:var(--slate)}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+@media(max-width:900px){
+  .hero-inner{grid-template-columns:1fr}.hero-visual{display:none}
+  h1{font-size:2.5rem}.features-grid,.steps-grid,.pricing-grid{grid-template-columns:1fr}
+  .jobs-grid{grid-template-columns:1fr}.intel-grid{grid-template-columns:1fr}
+  .footer-inner{grid-template-columns:1fr 1fr}.tracker-board{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">Cadre<span>.</span></a>
+    <ul class="nav-links">
+      <li><a href="#how-it-works">How it works</a></li>
+      <li><a href="#jobs">Browse Jobs</a></li>
+      <li><a href="#salary">Salary Intel</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="#" class="btn-ghost">Sign in</a>
+      <a href="#" class="btn-primary">Get started free</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-badge">⚡ Built for 5+ year engineers</div>
+      <h1>Land your next <em>senior role</em> — not just any role.</h1>
+      <p class="hero-sub">Cadre matches senior engineers and data professionals to jobs that fit their level, salary expectations, and career trajectory. Quality over volume.</p>
+      <div class="hero-cta">
+        <a href="#jobs" class="btn-lg btn-indigo">Browse senior jobs</a>
+        <a href="#how-it-works" class="btn-lg btn-outline">See how it works</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <div class="stat-num">2,400+</div>
+          <div class="stat-label">Senior roles active</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">$185K</div>
+          <div class="stat-label">Avg total comp</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">48h</div>
+          <div class="stat-label">Avg time to first interview</div>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="dashboard-card">
+        <div class="dash-header">
+          <div class="dash-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+          <span class="dash-title">Cadre Dashboard — Your Matches Today</span>
+        </div>
+        <div class="dash-body">
+          <div class="dash-tabs">
+            <button class="dash-tab active">Top Matches</button>
+            <button class="dash-tab">Applied (12)</button>
+            <button class="dash-tab">Interviews</button>
+          </div>
+          <div class="job-card-mini">
+            <div class="company-logo-mini" style="background:#FF6154">D</div>
+            <div class="jcm-info"><div class="jcm-title">Senior Data Engineer</div><div class="jcm-company">Databricks · Remote</div></div>
+            <div class="jcm-right"><div class="match-badge match-high">94% match</div><div class="jcm-salary">$185K–$230K TC</div></div>
+          </div>
+          <div class="job-card-mini">
+            <div class="company-logo-mini" style="background:#0078D4">M</div>
+            <div class="jcm-info"><div class="jcm-title">Staff Data Engineer</div><div class="jcm-company">Microsoft · Redmond, WA</div></div>
+            <div class="jcm-right"><div class="match-badge match-high">91% match</div><div class="jcm-salary">$200K–$260K TC</div></div>
+          </div>
+          <div class="job-card-mini">
+            <div class="company-logo-mini" style="background:#FF9900">A</div>
+            <div class="jcm-info"><div class="jcm-title">Sr. Data Engineer, AWS</div><div class="jcm-company">Amazon · Seattle, WA</div></div>
+            <div class="jcm-right"><div class="match-badge match-mid">78% match</div><div class="jcm-salary">$175K–$220K TC</div></div>
+          </div>
+          <div class="job-card-mini">
+            <div class="company-logo-mini" style="background:#00A3E0">S</div>
+            <div class="jcm-info"><div class="jcm-title">Data Engineering Lead</div><div class="jcm-company">Snowflake · Remote</div></div>
+            <div class="jcm-right"><div class="match-badge match-high">88% match</div><div class="jcm-salary">$195K–$250K TC</div></div>
+          </div>
+        </div>
+        <div class="dash-footer">
+          <span class="dash-foot-stat"><strong>4 new</strong> matches since yesterday</span>
+          <span class="dash-foot-stat">Next refresh in <strong>14m</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust">
+  <div class="trust-inner">
+    <span class="trust-label">Hired at</span>
+    <div class="trust-logos">
+      <span class="trust-logo">Microsoft</span>
+      <span class="trust-logo">Databricks</span>
+      <span class="trust-logo">Snowflake</span>
+      <span class="trust-logo">Amazon</span>
+      <span class="trust-logo">Google</span>
+      <span class="trust-logo">Meta</span>
+      <span class="trust-logo">Palantir</span>
+      <span class="trust-logo">Stripe</span>
+      <span class="trust-logo">Airbnb</span>
+      <span class="trust-logo">Netflix</span>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-inner">
+    <div class="section-label">Why Cadre</div>
+    <h2 class="section-title">Built for senior engineers.<br>Not for recent grads.</h2>
+    <p class="section-sub">Every feature designed around what actually matters at 5, 8, 10 years of experience.</p>
+    <div class="features-grid reveal">
+      <div class="feature-card">
+        <div class="feature-icon icon-indigo">🎯</div>
+        <div class="feature-title">Seniority-filtered matching</div>
+        <div class="feature-desc">No entry-level noise. Every role is verified for L5+ equivalent experience. We show your match % against actual JD requirements.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon icon-gold">💰</div>
+        <div class="feature-title">Total comp transparency</div>
+        <div class="feature-desc">See base, equity, bonus, and location-adjusted TC before you apply. Crowd-sourced and verified from real offer letters.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon icon-emerald">🏢</div>
+        <div class="feature-title">Company intel cards</div>
+        <div class="feature-desc">Interview process, team size, engineering culture, tech stack, funding stage. Know what you're walking into before the first call.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon icon-violet">⚡</div>
+        <div class="feature-title">AI resume tailoring</div>
+        <div class="feature-desc">One-click resume tailored to each JD. Highlights your senior-level impact, leadership, and scope. ATS-optimized, not generic.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon icon-rose">📊</div>
+        <div class="feature-title">Leveling signal</div>
+        <div class="feature-desc">"This role maps to L5 at your target companies." Know if a role is a step up, lateral, or step down before wasting time.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon icon-sky">🤝</div>
+        <div class="feature-title">Offer comparison</div>
+        <div class="feature-desc">Side-by-side TC comparison when you have multiple offers. Negotiation scripts generated from real counter-offer data.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-it-works" id="how-it-works">
+  <div class="section-inner">
+    <div class="section-label" style="color:var(--indigo-l)">The process</div>
+    <h2 class="section-title">Four steps to your next role.</h2>
+    <p class="section-sub">Cadre does the heavy lifting. You show up for the interviews.</p>
+    <div class="steps-grid reveal">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <div class="step-title">Build your profile</div>
+        <div class="step-desc">Upload your resume. Set target role, salary floor, remote preference, and companies to avoid. Takes 5 minutes.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <div class="step-title">Get matched daily</div>
+        <div class="step-desc">Cadre scans 2,400+ active senior roles and surfaces the top 10 that fit your experience, level, and TC expectations.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <div class="step-title">Apply with AI assist</div>
+        <div class="step-desc">One click generates a tailored resume and cover letter. Review, approve, then apply. You stay in control — no auto-submitting.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">04</div>
+        <div class="step-title">Track & negotiate</div>
+        <div class="step-desc">All applications in one Kanban. When offers come in, compare TC side-by-side and get negotiation scripts backed by real data.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JOBS -->
+<section class="jobs-section" id="jobs">
+  <div class="section-inner">
+    <div class="section-label">Live jobs</div>
+    <h2 class="section-title">Senior roles hiring now.</h2>
+    <p class="section-sub">All verified for 5+ years required experience. Updated daily from 1,200+ company career pages.</p>
+    <!-- SEARCH BAR -->
+    <div class="search-wrap">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input id="job-search" class="search-input" type="text" placeholder="Search by role, skill, or company — Java, Python, C++, VLSI, DevOps, PM…" autocomplete="off">
+        <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
+      </div>
+      <div id="search-count" class="search-count"></div>
+    </div>
+    <div class="jobs-controls" id="filter-bar">
+      <button class="filter-pill active" data-cat="all">All Roles</button>
+      <button class="filter-pill" data-cat="data">Data Engineering</button>
+      <button class="filter-pill" data-cat="backend">Backend / Java / Python</button>
+      <button class="filter-pill" data-cat="frontend">Frontend</button>
+      <button class="filter-pill" data-cat="embedded">Embedded / VLSI</button>
+      <button class="filter-pill" data-cat="devops">DevOps / Cloud</button>
+      <button class="filter-pill" data-cat="mobile">Mobile</button>
+      <button class="filter-pill" data-cat="ml">ML / AI</button>
+      <button class="filter-pill" data-cat="pm">Project Mgmt</button>
+      <button class="filter-pill" data-cat="security">Security</button>
+    </div>
+    <div class="jobs-controls emp-filter-bar" id="emp-filter-bar">
+      <span class="emp-filter-label">Employment:</span>
+      <button class="emp-pill active" data-emp="all">All Types</button>
+      <button class="emp-pill" data-emp="fulltime">⬛ Full-Time Only</button>
+      <button class="emp-pill" data-emp="contract">🟦 Contract (W2)</button>
+      <button class="emp-pill emp-pill-c2c" data-emp="c2c">🟧 C2C / 1099</button>
+      <button class="emp-pill" data-emp="parttime">🟩 Part-Time</button>
+      <button class="emp-pill" data-emp="remote">🌐 Remote Only</button>
+    </div>
+    <div class="jobs-grid" id="jobs-grid"></div>
+    <div id="no-results" class="no-results" style="display:none">
+      <div style="font-size:2.5rem;margin-bottom:1rem">🔎</div>
+      <div style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-bottom:.5rem">No roles found</div>
+      <div style="color:#64748B;font-size:.9rem">Try a different keyword or clear the filter</div>
+    </div>
+    <div style="text-align:center;margin-top:2.5rem" id="view-all-btn">
+      <a href="#" class="btn-lg btn-indigo">View all 2,400+ senior roles</a>
+    </div>
+  </div>
+</section>
+
+<!-- SALARY INTEL -->
+<section class="salary-section" id="salary">
+  <div class="section-inner">
+    <div class="section-label">Salary intelligence</div>
+    <h2 class="section-title">Know your market value.</h2>
+    <p class="section-sub">Crowd-sourced total comp data from verified offer letters. Updated weekly.</p>
+    <div class="salary-table reveal">
+      <div class="salary-row header">
+        <span>Role</span><span>Level</span><span>Total Comp</span><span>Base</span><span>YOE</span>
+      </div>
+      <div class="salary-row">
+        <div class="role-cell">Senior Data Engineer</div>
+        <div class="lvl-cell">L5 / Sr.</div>
+        <div class="tc-cell">$175K – $230K</div>
+        <div class="base-cell">$145K – $175K</div>
+        <div class="yoe-cell">5–8 yrs</div>
+      </div>
+      <div class="salary-row">
+        <div class="role-cell">Staff Data Engineer</div>
+        <div class="lvl-cell">L6 / Staff</div>
+        <div class="tc-cell">$220K – $310K</div>
+        <div class="base-cell">$170K – $210K</div>
+        <div class="yoe-cell">8–12 yrs</div>
+      </div>
+      <div class="salary-row">
+        <div class="role-cell">Principal Data Engineer</div>
+        <div class="lvl-cell">L7 / Principal</div>
+        <div class="tc-cell">$290K – $420K</div>
+        <div class="base-cell">$200K – $250K</div>
+        <div class="yoe-cell">12+ yrs</div>
+      </div>
+      <div class="salary-row">
+        <div class="role-cell">Senior ML Engineer</div>
+        <div class="lvl-cell">L5 / Sr.</div>
+        <div class="tc-cell">$190K – $270K</div>
+        <div class="base-cell">$155K – $190K</div>
+        <div class="yoe-cell">5–9 yrs</div>
+      </div>
+      <div class="salary-row">
+        <div class="role-cell">Senior Software Engineer</div>
+        <div class="lvl-cell">L5 / Sr.</div>
+        <div class="tc-cell">$165K – $250K</div>
+        <div class="base-cell">$140K – $180K</div>
+        <div class="yoe-cell">5–8 yrs</div>
+      </div>
+      <div class="salary-row">
+        <div class="role-cell">Data Engineering Lead</div>
+        <div class="lvl-cell">Lead / M1</div>
+        <div class="tc-cell">$200K – $280K</div>
+        <div class="base-cell">$160K – $200K</div>
+        <div class="yoe-cell">7–12 yrs</div>
+      </div>
+      <div class="salary-row">
+        <div class="role-cell">Senior Cloud / Platform Eng</div>
+        <div class="lvl-cell">L5 / Sr.</div>
+        <div class="tc-cell">$170K – $240K</div>
+        <div class="base-cell">$140K – $175K</div>
+        <div class="yoe-cell">5–9 yrs</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPANY INTEL -->
+<section class="intel-section" id="intel">
+  <div class="section-inner">
+    <div class="section-label">Company intel</div>
+    <h2 class="section-title">Know before you apply.</h2>
+    <p class="section-sub">Interview process, engineering culture, and team details — so you can decide if it's worth your time.</p>
+    <div class="intel-grid reveal" id="intel-grid"></div>
+  </div>
+</section>
+
+<!-- APPLICATION TRACKER -->
+<section class="tracker-section" id="tracker">
+  <div class="section-inner">
+    <div class="section-label">Application tracker</div>
+    <h2 class="section-title">Your entire job search in one board.</h2>
+    <p class="section-sub">No more spreadsheets. Track every application, interview, and offer in one place.</p>
+    <div class="tracker-board reveal">
+      <div class="tracker-col">
+        <div class="tracker-col-header col-applied"><span>Applied</span><span class="col-count">8</span></div>
+        <div class="tracker-col-body">
+          <div class="tracker-card"><div class="tc-company">Databricks</div><div class="tc-role">Senior Data Engineer</div><div class="tc-meta"><div class="tc-date">3 days ago</div><div class="tc-action act-none">Waiting</div></div></div>
+          <div class="tracker-card"><div class="tc-company">Snowflake</div><div class="tc-role">Data Eng Lead</div><div class="tc-meta"><div class="tc-date">5 days ago</div><div class="tc-action act-none">Waiting</div></div></div>
+          <div class="tracker-card"><div class="tc-company">Palantir</div><div class="tc-role">Sr. Data Engineer</div><div class="tc-meta"><div class="tc-date">1 week ago</div><div class="tc-action act-none">Waiting</div></div></div>
+          <div class="tracker-card"><div class="tc-company">dbt Labs</div><div class="tc-role">Staff Data Engineer</div><div class="tc-meta"><div class="tc-date">2 days ago</div><div class="tc-action act-none">Waiting</div></div></div>
+        </div>
+      </div>
+      <div class="tracker-col">
+        <div class="tracker-col-header col-screening"><span>Screening</span><span class="col-count">3</span></div>
+        <div class="tracker-col-body">
+          <div class="tracker-card"><div class="tc-company">Microsoft</div><div class="tc-role">Staff Data Engineer</div><div class="tc-meta"><div class="tc-date">Phone Thu 2pm</div><div class="tc-action act-prep">Prep needed</div></div></div>
+          <div class="tracker-card"><div class="tc-company">Amazon</div><div class="tc-role">Sr. Data Engineer</div><div class="tc-meta"><div class="tc-date">Tomorrow 11am</div><div class="tc-action act-prep">Prep needed</div></div></div>
+          <div class="tracker-card"><div class="tc-company">Netflix</div><div class="tc-role">Sr. Data Engineer</div><div class="tc-meta"><div class="tc-date">Scheduled Fri</div><div class="tc-action act-none">Confirmed</div></div></div>
+        </div>
+      </div>
+      <div class="tracker-col">
+        <div class="tracker-col-header col-interview"><span>Interviewing</span><span class="col-count">2</span></div>
+        <div class="tracker-col-body">
+          <div class="tracker-card"><div class="tc-company">Google</div><div class="tc-role">L5 Data Engineer</div><div class="tc-meta"><div class="tc-date">Onsite next Wed</div><div class="tc-action act-live">In progress</div></div></div>
+          <div class="tracker-card"><div class="tc-company">Stripe</div><div class="tc-role">Data Eng Lead</div><div class="tc-meta"><div class="tc-date">Final round Fri</div><div class="tc-action act-live">In progress</div></div></div>
+        </div>
+      </div>
+      <div class="tracker-col">
+        <div class="tracker-col-header col-offer"><span>Offers</span><span class="col-count">1</span></div>
+        <div class="tracker-col-body">
+          <div class="tracker-card"><div class="tc-company">Airbnb</div><div class="tc-role">Sr. Data Engineer</div><div class="tc-meta"><div class="tc-date">Expires in 5 days</div><div class="tc-action act-comp">$198K TC</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="section-inner">
+    <div class="section-label" style="color:var(--indigo-l)">Pricing</div>
+    <h2 class="section-title">Simple. No surprise charges.</h2>
+    <p class="section-sub">Pay for the features. Keep 100% of your offer.</p>
+    <div class="pricing-grid reveal">
+      <div class="price-card">
+        <div class="price-tier">Free</div>
+        <div class="price-amount">$0</div>
+        <div class="price-period">forever</div>
+        <div class="price-desc">Browse jobs, get matched, track applications. No credit card required.</div>
+        <ul class="price-features">
+          <li class="price-feature">Browse all senior roles</li>
+          <li class="price-feature">Match scoring</li>
+          <li class="price-feature">Basic application tracker</li>
+          <li class="price-feature">Salary intelligence</li>
+          <li class="price-feature">Company intel cards</li>
+        </ul>
+        <button class="price-cta price-cta-light">Get started free</button>
+      </div>
+      <div class="price-card featured">
+        <div class="featured-badge">FREE DURING BETA</div>
+        <div class="price-tier">Pro</div>
+        <div class="price-amount" style="text-decoration:line-through;opacity:.4;font-size:1.5rem">$29</div>
+        <div class="price-amount" style="font-size:2.5rem">$0</div>
+        <div class="price-period">/ month during beta</div>
+        <div class="price-desc">All AI tools are free while we're in beta. No credit card needed.</div>
+        <ul class="price-features">
+          <li class="price-feature">Everything in Free</li>
+          <li class="price-feature">✦ AI resume tailoring per role</li>
+          <li class="price-feature">✦ AI cover letter generator</li>
+          <li class="price-feature">✦ Interview prep questions</li>
+          <li class="price-feature">✦ Offer comparison tool</li>
+          <li class="price-feature">✦ Negotiation scripts</li>
+          <li class="price-feature">✦ Priority job alerts</li>
+        </ul>
+        <button class="price-cta price-cta-white" onclick="document.getElementById('jobs').scrollIntoView({behavior:'smooth'})">Try AI Assist Free →</button>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">For Companies</div>
+        <div class="price-amount">$199</div>
+        <div class="price-period">per listing</div>
+        <div class="price-desc">Reach 12,000+ senior engineers actively looking. Verified experience levels only.</div>
+        <ul class="price-features">
+          <li class="price-feature">Featured placement in feed</li>
+          <li class="price-feature">Match to pre-screened candidates</li>
+          <li class="price-feature">30-day listing lifetime</li>
+          <li class="price-feature">Applicant quality report</li>
+          <li class="price-feature">Unlimited applications</li>
+        </ul>
+        <button class="price-cta price-cta-outline">Post a job</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Your next senior role is on Cadre.</h2>
+  <p>Join 12,000+ senior engineers who use Cadre to find roles that match their level.</p>
+  <div class="cta-form">
+    <input class="cta-input" type="email" placeholder="Your work email">
+    <button class="cta-btn">Get started free →</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="#" class="nav-logo">Cadre<span>.</span></a>
+      <p>The job platform built for senior engineers and data professionals. Quality over volume.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#jobs">Browse Jobs</a>
+      <a href="#salary">Salary Intel</a>
+      <a href="#intel">Company Intel</a>
+      <a href="#tracker">App Tracker</a>
+      <a href="#pricing">Pricing</a>
+    </div>
+    <div class="footer-col">
+      <h4>For Candidates</h4>
+      <a href="#">Data Engineering</a>
+      <a href="#">Software Engineering</a>
+      <a href="#">ML / AI Roles</a>
+      <a href="#">Cloud & Platform</a>
+      <a href="#">Leadership Roles</a>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#">About</a>
+      <a href="#">Blog</a>
+      <a href="#">For Employers</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2026 Cadre. All rights reserved.</span>
+    <span class="footer-copy">Built for senior engineers, by engineers.</span>
+  </div>
+</footer>
+
+<!-- JOB MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div style="font-size:.75rem;color:var(--slate);margin-bottom:.25rem" id="modal-company-name"></div>
+        <div style="font-size:1.3rem;font-weight:800;color:var(--navy)" id="modal-title"></div>
+        <div style="display:flex;gap:.75rem;margin-top:.5rem;flex-wrap:wrap" id="modal-meta"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- AI ASSIST MODAL -->
+<div class="modal-overlay" id="ai-modal">
+  <div class="modal" style="max-width:780px">
+    <div class="modal-header" id="ai-modal-header">
+      <div>
+        <div style="font-size:.75rem;color:var(--slate);margin-bottom:.2rem">✦ AI Application Assistant</div>
+        <div style="font-size:1.2rem;font-weight:800;color:var(--navy)" id="ai-modal-title">Tailor your application</div>
+      </div>
+      <button class="modal-close" onclick="closeAIModal()">✕</button>
+    </div>
+
+    <!-- STEP 1: Upload Resume -->
+    <div id="ai-step-1" class="ai-step">
+      <div class="modal-body">
+        <div class="step-indicator">
+          <div class="step-dot active" data-s="1">1</div>
+          <div class="step-line"></div>
+          <div class="step-dot" data-s="2">2</div>
+          <div class="step-line"></div>
+          <div class="step-dot" data-s="3">3</div>
+          <div class="step-line"></div>
+          <div class="step-dot" data-s="4">4</div>
+        </div>
+        <h3 style="font-size:1.1rem;font-weight:700;color:var(--navy);margin:1.5rem 0 .5rem">Paste your resume or key experience</h3>
+        <p style="font-size:.875rem;color:#64748B;margin-bottom:1.25rem">The AI will tailor your resume, write a cover letter, and generate interview prep — all specific to this role.</p>
+        <textarea id="resume-input" class="resume-textarea" placeholder="Paste your resume text here…
+
+Example:
+Senior Data Engineer at Accenture (2020–present)
+• Built medallion architecture pipelines using Azure Data Factory and Databricks
+• Designed Bronze/Silver/Gold Delta Lake layers processing 50M+ records/day
+• Led migration from on-prem SQL Server to Microsoft Fabric OneLake
+
+Skills: PySpark, Python, SQL, Azure, Databricks, dbt, Airflow, Power BI"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem">
+          <span style="font-size:.78rem;color:var(--slate)">Your data is never stored or shared</span>
+          <button class="apply-action" style="width:auto;padding:.75rem 2rem" onclick="runAIAssist()">Generate with AI →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Generating -->
+    <div id="ai-step-2" class="ai-step" style="display:none">
+      <div class="modal-body" style="text-align:center;padding:3rem 2rem">
+        <div class="ai-spinner">
+          <div class="spinner-ring"></div>
+          <div class="spinner-logo">✦</div>
+        </div>
+        <div style="font-size:1.1rem;font-weight:700;color:var(--navy);margin-top:1.5rem" id="gen-status">Reading your resume…</div>
+        <div style="font-size:.875rem;color:var(--slate);margin-top:.5rem" id="gen-sub">Analyzing role requirements and matching your experience</div>
+        <div class="gen-progress"><div class="gen-bar" id="gen-bar"></div></div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Results -->
+    <div id="ai-step-3" class="ai-step" style="display:none">
+      <div class="modal-body">
+        <div class="step-indicator">
+          <div class="step-dot done" data-s="1">✓</div>
+          <div class="step-line done"></div>
+          <div class="step-dot done" data-s="2">✓</div>
+          <div class="step-line done"></div>
+          <div class="step-dot done" data-s="3">✓</div>
+          <div class="step-line done"></div>
+          <div class="step-dot done" data-s="4">✓</div>
+        </div>
+        <div class="result-tabs" style="margin-top:1.5rem">
+          <button class="result-tab active" onclick="showResultTab('resume',this)">📄 Tailored Resume</button>
+          <button class="result-tab" onclick="showResultTab('cover',this)">✉️ Cover Letter</button>
+          <button class="result-tab" onclick="showResultTab('prep',this)">🎯 Interview Prep</button>
+          <button class="result-tab" onclick="showResultTab('nego',this)">💰 Negotiation</button>
+        </div>
+
+        <div id="result-resume" class="result-panel">
+          <div class="result-header">
+            <span class="result-badge">AI-tailored for <span id="res-company-resume"></span></span>
+            <button class="copy-btn" onclick="copyResult('result-resume-content')">Copy</button>
+          </div>
+          <div class="result-content" id="result-resume-content"></div>
+        </div>
+
+        <div id="result-cover" class="result-panel" style="display:none">
+          <div class="result-header">
+            <span class="result-badge">Cover letter · <span id="res-company-cover"></span></span>
+            <button class="copy-btn" onclick="copyResult('result-cover-content')">Copy</button>
+          </div>
+          <div class="result-content" id="result-cover-content"></div>
+        </div>
+
+        <div id="result-prep" class="result-panel" style="display:none">
+          <div class="result-header">
+            <span class="result-badge">Interview prep · <span id="res-company-prep"></span></span>
+            <button class="copy-btn" onclick="copyResult('result-prep-content')">Copy</button>
+          </div>
+          <div class="result-content" id="result-prep-content"></div>
+        </div>
+
+        <div id="result-nego" class="result-panel" style="display:none">
+          <div class="result-header">
+            <span class="result-badge">Negotiation guide · <span id="res-company-nego"></span></span>
+            <button class="copy-btn" onclick="copyResult('result-nego-content')">Copy</button>
+          </div>
+          <div class="result-content" id="result-nego-content"></div>
+        </div>
+
+        <div style="display:flex;gap:.75rem;margin-top:1.25rem">
+          <button class="apply-action" style="flex:1" onclick="goToApply()">Proceed to Application →</button>
+          <button style="padding:.85rem 1.5rem;border:1px solid var(--border);border-radius:12px;background:none;cursor:pointer;font-weight:600;color:var(--navy)" onclick="resetAI()">↩ Start over</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.ai-step{}
+.step-indicator{display:flex;align-items:center;gap:0}
+.step-dot{width:32px;height:32px;border-radius:50%;background:var(--border);color:var(--slate);font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s}
+.step-dot.active{background:var(--indigo);color:var(--white)}
+.step-dot.done{background:var(--emerald);color:var(--white)}
+.step-line{flex:1;height:2px;background:var(--border);transition:background .3s}
+.step-line.done{background:var(--emerald)}
+.resume-textarea{width:100%;min-height:200px;padding:1rem;border:1.5px solid var(--border);border-radius:12px;font-size:.875rem;color:var(--navy);line-height:1.6;resize:vertical;outline:none;font-family:inherit;transition:border-color .2s}
+.resume-textarea:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,0.1)}
+
+/* SPINNER */
+.ai-spinner{position:relative;width:72px;height:72px;margin:0 auto}
+.spinner-ring{width:72px;height:72px;border-radius:50%;border:3px solid var(--border);border-top-color:var(--indigo);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+.spinner-logo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.4rem;color:var(--indigo)}
+.gen-progress{background:var(--border);border-radius:999px;height:4px;margin-top:2rem;overflow:hidden}
+.gen-bar{height:100%;background:linear-gradient(90deg,var(--indigo),var(--gold));border-radius:999px;width:0%;transition:width .4s var(--ease)}
+
+/* RESULT TABS */
+.result-tabs{display:flex;gap:.5rem;flex-wrap:wrap;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+.result-tab{background:none;border:1px solid var(--border);border-radius:8px;padding:.45rem .9rem;font-size:.8rem;font-weight:600;color:var(--slate);cursor:pointer;transition:all .2s}
+.result-tab.active{background:var(--indigo);color:var(--white);border-color:var(--indigo)}
+.result-header{display:flex;justify-content:space-between;align-items:center;margin:1rem 0 .75rem}
+.result-badge{font-size:.75rem;font-weight:600;color:var(--indigo);background:rgba(99,102,241,0.08);padding:.3rem .75rem;border-radius:6px}
+.copy-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:.3rem .75rem;font-size:.75rem;font-weight:600;color:var(--slate);cursor:pointer;transition:all .2s}
+.copy-btn:hover{background:var(--navy);color:var(--white);border-color:var(--navy)}
+.result-content{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;font-size:.875rem;color:var(--navy);line-height:1.8;white-space:pre-wrap;max-height:320px;overflow-y:auto;font-family:'Courier New',monospace}
+</style>
+
+<script>
+// JOB DATA
+const JOBS = [
+  {cat:"data",company:"Databricks",color:"#FF6154",letter:"D",stage:"Series I · $43B val",
+    title:"Senior Data Engineer",location:"Remote (US)",type:"Full-time",remote:true,posted:"2h ago",isNew:true,
+    tc:"$185,000 – $230,000",base:"$145,000 – $175,000",equity:"$30K–$55K/yr RSU",
+    match:94,level:"L5 / Senior",yoe:"5–8 years",cat:"data",
+    skills:["PySpark","Delta Lake","Databricks","Python","SQL","dbt"],
+    desc:"Join the Databricks data platform team building next-gen lakehouse infrastructure. You'll own the Bronze→Silver→Gold pipeline, optimize Delta Lake performance, and partner with product teams across Unity Catalog.",
+    interview:"Phone screen → Technical (45min coding) → System design (60min) → Cultural fit. Total: ~2.5 weeks.",
+    stack:"Databricks Runtime, Delta Lake, Apache Spark, Python, SQL, dbt, Terraform",
+    teamSize:"12 engineers, 2 leads",why:"Remote-first, RSU refreshes, unlimited PTO, $4K learning stipend",
+    leveling:"Strong L5 match. Staff (L6) possible if you have architecture experience."
+  },
+  {cat:"data",
+    company:"Snowflake",color:"#29B5E8",letter:"S",stage:"Public · $46B mkt cap",
+    title:"Data Engineering Lead",location:"San Mateo, CA (Hybrid)",type:"Full-time",remote:false,posted:"1d ago",isNew:false,
+    tc:"$195,000 – $250,000",base:"$160,000 – $195,000",equity:"$35K–$60K/yr RSU",
+    match:88,level:"L6 / Lead",yoe:"7–10 years",
+    skills:["Snowflake","dbt","Airflow","Python","SQL","Terraform","AWS"],
+    desc:"Lead a team of 5 data engineers building the next generation of Snowflake's internal data platform. Own roadmap, architecture decisions, and delivery. Strong IC-to-lead transition role.",
+    interview:"Recruiter screen → Manager call → Technical panel (2x45min) → Presentation round → Exec. 3.5–4 weeks.",
+    stack:"Snowflake, dbt, Airflow, Python, AWS Glue, Terraform, Tableau",
+    teamSize:"5 engineers reporting to you, 1 PM",why:"Market-leading equity, hybrid 3 days, career growth to Director",
+    leveling:"L6 Lead. Comes with people management. Pure IC path also available at L6."
+  },
+  {cat:"data",
+    company:"Microsoft",color:"#0078D4",letter:"M",stage:"Public · $3.2T mkt cap",
+    title:"Staff Data Engineer — Fabric",location:"Redmond, WA / Remote",type:"Full-time",remote:true,posted:"3d ago",isNew:false,
+    tc:"$200,000 – $260,000",base:"$168,000 – $205,000",equity:"$30K–$55K/yr ESPP+RSU",
+    match:91,level:"L65 / Staff",yoe:"8–12 years",
+    skills:["Microsoft Fabric","Azure","PySpark","Delta Lake","Python","Power BI","OneLake"],
+    desc:"Drive the architecture of Microsoft Fabric's data engineering platform. You'll work directly on OneLake ingestion pipelines, medallion architecture patterns, and developer tooling used by thousands of enterprise customers.",
+    interview:"Online assessment → Recruiter → 4x45min panels (coding, system design, behavioral, domain). 3 weeks total.",
+    stack:"Microsoft Fabric, Azure Data Factory, Databricks, PySpark, Python, Power BI",
+    teamSize:"8 engineers, cross-team with PM and design",why:"Strong ESPP, sabbatical after 5 years, global mobility",
+    leveling:"L65 Staff. Could negotiate L67 Principal with 12+ years and architecture portfolio."
+  },
+  {cat:"data",
+    company:"Stripe",color:"#6772E5",letter:"S",stage:"Pre-IPO · $65B val",
+    title:"Senior Data Engineer — Payments",location:"San Francisco, CA",type:"Full-time",remote:false,posted:"12h ago",isNew:true,
+    tc:"$200,000 – $265,000",base:"$165,000 – $200,000",equity:"$40K–$65K/yr RSU",
+    match:82,level:"L5 / Senior",yoe:"5–8 years",
+    skills:["Python","Spark","Kafka","dbt","Airflow","PostgreSQL","Scala"],
+    desc:"Build real-time and batch data pipelines that power Stripe's payment analytics, fraud detection, and financial reporting. Work with petabyte-scale transaction data across 195 countries.",
+    interview:"Recruiter → Technical screen (1hr coding) → Onsite: coding, systems, data modeling, leadership. 4 weeks.",
+    stack:"Spark, Kafka, dbt, Airflow, Python, Scala, PostgreSQL, BigQuery",
+    teamSize:"10 engineers across 2 squads",why:"Pre-IPO equity, top-tier comp, world-class engineering culture",
+    leveling:"Solid L5. Stripe's bar is high — review distributed systems fundamentals."
+  },
+  {cat:"data",
+    company:"Airbnb",color:"#FF5A5F",letter:"A",stage:"Public · $78B mkt cap",
+    title:"Senior Data Engineer — Trust",location:"Remote (US)",type:"Full-time",remote:true,posted:"5d ago",isNew:false,
+    tc:"$190,000 – $240,000",base:"$155,000 – $185,000",equity:"$35K–$55K/yr RSU",
+    match:79,level:"L5 / Senior",yoe:"5–8 years",
+    skills:["Python","Spark","Airflow","Hive","Presto","dbt","MySQL"],
+    desc:"Power Airbnb's trust and safety platform with reliable, scalable data pipelines. You'll build the data infrastructure that detects fraud, protects hosts and guests, and informs policy decisions globally.",
+    interview:"Recruiter → Technical (1hr) → Onsite: data modeling, systems design, coding, values. 3 weeks.",
+    stack:"Apache Spark, Airflow, Presto, Hive, MySQL, Python, dbt",
+    teamSize:"7 engineers, 1 TL, 2 PMs",why:"Fully remote, strong brand, mission-driven team",
+    leveling:"L5 match. L6 needs staff-level scope — large cross-team projects."
+  },
+  {cat:"data",company:"dbt Labs",color:"#FF6F61",letter:"D",stage:"Series D · $4.2B val",
+    title:"Staff Data Engineer",location:"Remote (Global)",type:"Full-time",remote:true,posted:"1d ago",isNew:false,
+    tc:"$180,000 – $235,000",base:"$148,000 – $180,000",equity:"$32K–$50K/yr options",
+    match:85,level:"L6 / Staff",yoe:"8–11 years",
+    skills:["dbt","Python","SQL","Spark","Airflow","Data Modeling","Snowflake"],
+    desc:"Shape how dbt Labs uses its own product. Build internal data platform, own data quality standards, and partner with product to dogfood dbt Cloud features.",
+    interview:"Recruiter → Take-home (3hr) → Panel: data modeling, systems, cultural add. 2.5 weeks.",
+    stack:"dbt Cloud, Snowflake, Airflow, Python, Looker, GitHub Actions",
+    teamSize:"4 data engineers + analytics engineers",why:"100% remote, strong mission, equity upside at growth stage",
+    leveling:"Staff L6 — needs architectural leadership, not just technical execution."},
+
+  // ── BACKEND / JAVA / PYTHON / C++ ──
+  {cat:"backend",company:"Amazon",color:"#FF9900",letter:"A",stage:"Public · $1.9T",
+    title:"Senior Software Engineer — Java",location:"Seattle, WA (Hybrid)",type:"Full-time",remote:false,posted:"6h ago",isNew:true,
+    tc:"$190,000 – $250,000",base:"$155,000 – $185,000",equity:"$35K–$65K/yr RSU",
+    match:90,level:"L6 / Senior",yoe:"5–9 years",
+    skills:["Java","Spring Boot","Microservices","AWS","DynamoDB","Kafka","Distributed Systems"],
+    desc:"Build large-scale distributed Java services powering Amazon's fulfillment network. Own design, implementation, and operational excellence for systems processing millions of orders per day.",
+    interview:"Online assessment (2hr) → Recruiter → LP screen → 5x onsite panels (coding, system design, leadership). 4 weeks.",
+    stack:"Java 17, Spring Boot, AWS (Lambda, DynamoDB, SQS, S3), Kafka, CDK",
+    teamSize:"8 engineers, 1 Principal",why:"RSU refreshes, 401k match, strong internal mobility",
+    leveling:"L6 match. Principal (L7) needs org-wide impact."},
+
+  {cat:"backend",company:"Goldman Sachs",color:"#1A6B3C",letter:"G",stage:"Public · $172B",
+    title:"Senior Java Developer — Trading Platform",location:"New York, NY",type:"Full-time",remote:false,posted:"2d ago",isNew:false,
+    tc:"$210,000 – $280,000",base:"$175,000 – $215,000",equity:"Bonus-heavy (30–50% base)",
+    match:83,level:"VP / Senior",yoe:"6–10 years",
+    skills:["Java","C++","Low-latency","FIX Protocol","Multithreading","Linux","SQL"],
+    desc:"Develop and maintain high-performance trading systems processing real-time equity and derivatives orders. Sub-microsecond latency, rock-solid reliability, and regulatory compliance at global scale.",
+    interview:"Technical screen → 3x technical panels (algorithms, system design, domain). 3 weeks.",
+    stack:"Java 11+, C++17, KDB+, Linux, Oracle, FIX/FAST protocol, in-house frameworks",
+    teamSize:"12 engineers across NY and London",why:"Top-of-market bonus, 401k, comprehensive benefits",
+    leveling:"VP level — strong IC role, not people management."},
+
+  {cat:"backend",company:"Netflix",color:"#E50914",letter:"N",stage:"Public · $290B",
+    title:"Senior Backend Engineer — Python",location:"Remote (US)",type:"Full-time",remote:true,posted:"3d ago",isNew:false,
+    tc:"$300,000 – $400,000",base:"$280,000 – $370,000",equity:"None (all cash)",
+    match:78,level:"Senior / Staff",yoe:"5–9 years",
+    skills:["Python","FastAPI","PostgreSQL","Redis","Kafka","AWS","GraphQL"],
+    desc:"Build backend services for Netflix's content delivery and recommendation systems. High-ownership culture — you design, build, deploy, and operate your own services.",
+    interview:"Technical screen → 2x code reviews → System design → Values interview. 3 weeks.",
+    stack:"Python, FastAPI, PostgreSQL, Redis, Kafka, AWS, Spinnaker, Grafana",
+    teamSize:"6 engineers per squad",why:"Highest base in industry, unlimited PTO, 1yr baby leave",
+    leveling:"Netflix is flat — Senior is top IC. No separate Staff level."},
+
+  {cat:"backend",company:"Qualcomm",color:"#3253DC",letter:"Q",stage:"Public · $195B",
+    title:"Senior C++ Engineer — Modem Software",location:"San Diego, CA",type:"Full-time",remote:false,posted:"4d ago",isNew:false,
+    tc:"$165,000 – $215,000",base:"$145,000 – $180,000",equity:"$20K–$35K/yr RSU",
+    match:81,level:"Senior / Staff",yoe:"6–10 years",
+    skills:["C++","C","RTOS","DSP","ARM","Linux Kernel","Multithreading","Protocol Stacks"],
+    desc:"Develop 5G NR modem software for Snapdragon chipsets shipped in 1B+ devices. Work on L1/L2 protocol stacks, baseband DSP, and real-time OS optimizations.",
+    interview:"Technical screen → 3x onsite panels (C++ deep dive, algorithms, system design). 3 weeks.",
+    stack:"C++17, C, ARM Cortex, RTOS (QuRT), Linux, Python scripting, Jenkins",
+    teamSize:"15 engineers across San Diego and India",why:"Patent incentives, relocation, strong hardware exposure",
+    leveling:"Principal Engineer path after 3+ years. Strong IC ladder."},
+
+  {cat:"backend",company:"Cisco",color:"#049FD9",letter:"C",stage:"Public · $225B",
+    title:"Senior Software Engineer — C++ / Go",location:"San Jose, CA (Hybrid)",type:"Full-time",remote:false,posted:"5d ago",isNew:false,
+    tc:"$175,000 – $225,000",base:"$145,000 – $180,000",equity:"$25K–$45K/yr RSU",
+    match:76,level:"Senior",yoe:"5–8 years",
+    skills:["C++","Go","Kubernetes","gRPC","Networking","Linux","REST APIs"],
+    desc:"Build network automation and orchestration software for Cisco's enterprise switching and routing portfolio. Focus on control-plane software, telemetry pipelines, and cloud-native networking.",
+    interview:"Recruiter → Technical screen → 4x onsite panels. 3–4 weeks.",
+    stack:"C++17, Go, Kubernetes, gRPC, Protobuf, Linux, Python, Terraform",
+    teamSize:"10 engineers, 1 architect",why:"Stability, patent program, $5K learning budget",
+    leveling:"Principal available after demonstrated architecture scope."},
+
+  // ── FRONTEND ──
+  {cat:"frontend",company:"Figma",color:"#F24E1E",letter:"F",stage:"Pre-IPO · $12B val",
+    title:"Senior Frontend Engineer — Editor",location:"San Francisco, CA",type:"Full-time",remote:false,posted:"1d ago",isNew:false,
+    tc:"$210,000 – $270,000",base:"$170,000 – $205,000",equity:"$40K–$65K/yr RSU",
+    match:87,level:"L5 / Senior",yoe:"5–8 years",
+    skills:["TypeScript","React","WebGL","WASM","CSS","Performance","Canvas API"],
+    desc:"Work on Figma's core editor — the canvas engine powering 10M+ designers globally. Focus on rendering performance, real-time collaboration, and WebAssembly-based computation.",
+    interview:"Recruiter → Take-home → Technical screen → Onsite (4x: coding, design, performance, values). 3.5 weeks.",
+    stack:"TypeScript, React, WebGL, WASM, Rust (Figma's engine), C++",
+    teamSize:"8 engineers on the editor team",why:"Pre-IPO equity, top-tier product culture, great eng brand",
+    leveling:"L5 strong match. Staff (L6) needs cross-team architectural impact."},
+
+  {cat:"frontend",company:"Vercel",color:"#000000",letter:"V",stage:"Series D · $3.25B val",
+    title:"Senior Frontend Engineer — DX",location:"Remote (Global)",type:"Full-time",remote:true,posted:"2d ago",isNew:false,
+    tc:"$175,000 – $225,000",base:"$145,000 – $175,000",equity:"$30K–$50K/yr options",
+    match:91,level:"Senior",yoe:"4–7 years",
+    skills:["TypeScript","React","Next.js","Node.js","Webpack","Vite","CSS-in-JS"],
+    desc:"Improve developer experience for millions of Next.js users. Build tooling, improve build times, optimize CLI UX, and contribute directly to the Next.js OSS project.",
+    interview:"Recruiter → Technical screen (build something live) → Async take-home → Final panel. 2.5 weeks.",
+    stack:"TypeScript, Next.js, React, Node.js, Turborepo, Vite, esbuild",
+    teamSize:"6 engineers on DX team",why:"Fully remote, strong OSS culture, massive developer reach",
+    leveling:"Senior. Staff-level possible with cross-product scope."},
+
+  {cat:"frontend",company:"Shopify",color:"#96BF48",letter:"S",stage:"Public · $110B",
+    title:"Staff Frontend Engineer — Storefront",location:"Remote (Canada/US)",type:"Full-time",remote:true,posted:"3d ago",isNew:false,
+    tc:"$185,000 – $240,000",base:"$155,000 – $190,000",equity:"$30K–$50K/yr RSU",
+    match:80,level:"Staff / Senior",yoe:"7–11 years",
+    skills:["React","TypeScript","GraphQL","Hydrogen","Remix","Web Performance","Accessibility"],
+    desc:"Lead frontend architecture for Shopify's storefront platform powering 4M+ merchants. Own the component library, performance budget, and web vitals strategy across the merchant experience.",
+    interview:"Recruiter → Technical assessment → System design → Values. 3 weeks.",
+    stack:"React, TypeScript, Hydrogen (Remix), GraphQL, Tailwind CSS, Vite",
+    teamSize:"10 engineers + 2 designers",why:"Remote-first, async culture, meaningful OSS contributions",
+    leveling:"Staff match. Strong senior candidates considered for accelerated path."},
+
+  // ── EMBEDDED / VLSI ──
+  {cat:"embedded",company:"Apple",color:"#555555",letter:"A",stage:"Public · $3.5T",
+    title:"Senior Embedded Software Engineer — Silicon",location:"Cupertino, CA",type:"Full-time",remote:false,posted:"1d ago",isNew:true,
+    tc:"$220,000 – $290,000",base:"$175,000 – $215,000",equity:"$45K–$75K/yr RSU",
+    match:88,level:"ICT4 / Senior",yoe:"5–9 years",
+    skills:["C","C++","ARM","RTOS","Bare-metal","Drivers","Power Management","Debugging"],
+    desc:"Develop firmware and embedded software for Apple Silicon chips (M-series, A-series). Own bringup, driver development, and power optimization for custom SoC features used in iPhone, Mac, and iPad.",
+    interview:"Recruiter → Technical screen → 5x onsite panels (OS internals, C/C++, system design, debugging, behavioral). 4 weeks.",
+    stack:"C, C++, ARM Cortex-A/M, RTOS, JTAG, Instruments, Python scripting",
+    teamSize:"8–12 engineers per SoC team",why:"Top-tier RSU, on-campus perks, world-class hardware",
+    leveling:"ICT4 / Senior. ICT5 Staff needs cross-team SoC ownership."},
+
+  {cat:"embedded",company:"NVIDIA",color:"#76B900",letter:"N",stage:"Public · $3.3T",
+    title:"Senior VLSI Design Engineer — GPU",location:"Santa Clara, CA",type:"Full-time",remote:false,posted:"3d ago",isNew:false,
+    tc:"$200,000 – $270,000",base:"$165,000 – $205,000",equity:"$35K–$65K/yr RSU",
+    match:85,level:"Senior / Staff",yoe:"5–10 years",
+    skills:["RTL Design","SystemVerilog","Verilog","UVM","Physical Design","Synthesis","Timing Closure"],
+    desc:"Design RTL for next-generation NVIDIA GPU cores and memory subsystems. Work on microarchitecture, functional verification (UVM), synthesis, and timing closure for H100/B200-class products.",
+    interview:"Technical screen → RTL coding challenge → Onsite: microarchitecture, verification, timing. 3–4 weeks.",
+    stack:"SystemVerilog, UVM, Synopsys DC, PrimeTime, Verdi, Python, Tcl",
+    teamSize:"12 VLSI engineers per functional unit",why:"Massive RSU upside, GPU revolution, top-tier benefits",
+    leveling:"Senior to Staff based on scope of SoC block ownership."},
+
+  {cat:"embedded",company:"Texas Instruments",color:"#C8102E",letter:"T",stage:"Public · $170B",
+    title:"Senior Embedded Systems Engineer",location:"Dallas, TX (Hybrid)",type:"Full-time",remote:false,posted:"5d ago",isNew:false,
+    tc:"$145,000 – $190,000",base:"$125,000 – $155,000",equity:"$15K–$30K/yr RSU",
+    match:79,level:"Senior",yoe:"5–8 years",
+    skills:["C","C++","ARM Cortex-M","FreeRTOS","CAN","SPI","I2C","UART","Low Power Design"],
+    desc:"Develop embedded firmware and BSP for TI's automotive and industrial microcontrollers (TDA, AM series). Own driver development, safety certification (ISO 26262), and OTA update mechanisms.",
+    interview:"Technical screen → Coding (embedded C) → Onsite 3x panels. 3 weeks.",
+    stack:"C, C++, FreeRTOS, CCS IDE, Python, ARM CMSIS, CAN/LIN/SPI/I2C",
+    teamSize:"10 engineers across Dallas and Bangalore",why:"Relocation package, 401k match, stable career growth",
+    leveling:"Principal Eng path at 8+ years with BSP ownership."},
+
+  {cat:"embedded",company:"Intel",color:"#0071C5",letter:"I",stage:"Public · $115B",
+    title:"Senior VLSI Verification Engineer",location:"Hillsboro, OR (Hybrid)",type:"Full-time",remote:false,posted:"4d ago",isNew:false,
+    tc:"$180,000 – $230,000",base:"$150,000 – $185,000",equity:"$25K–$45K/yr RSU",
+    match:82,level:"Senior / Staff",yoe:"6–9 years",
+    skills:["SystemVerilog","UVM","Formal Verification","Python","Simulation","Coverage","Assertions"],
+    desc:"Lead verification of Intel's next-generation CPU and GPU IP blocks. Own UVM testbench architecture, functional coverage closure, formal property verification, and silicon correlation.",
+    interview:"Recruiter → Technical coding test → Onsite: verification methodology, UVM, formal. 3 weeks.",
+    stack:"SystemVerilog, UVM, JasperGold, VCS/Xcelium, Python, Perforce",
+    teamSize:"15 verification engineers per IP team",why:"Pension plan, patent awards, HW industry expertise",
+    leveling:"Staff Principal at 10+ years with methodology ownership."},
+
+  // ── DEVOPS / CLOUD / PLATFORM ──
+  {cat:"devops",company:"HashiCorp",color:"#7B42BC",letter:"H",stage:"Acquired by IBM · $6.4B",
+    title:"Senior Platform Engineer — Terraform",location:"Remote (US)",type:"Full-time",remote:true,posted:"2d ago",isNew:false,
+    tc:"$170,000 – $220,000",base:"$140,000 – $170,000",equity:"$25K–$40K/yr RSU",
+    match:86,level:"Senior",yoe:"5–8 years",
+    skills:["Terraform","Kubernetes","Go","AWS","Azure","GCP","CI/CD","Vault","Consul"],
+    desc:"Build and maintain the internal platform powering HashiCorp's SaaS products. Own Terraform module library, multi-cloud provisioning, and the developer self-service IDP.",
+    interview:"Recruiter → Technical (live infra challenge) → Architecture panel → Values. 2.5 weeks.",
+    stack:"Terraform, Kubernetes, Go, Helm, ArgoCD, Vault, AWS, GCP",
+    teamSize:"7 platform engineers",why:"Fully remote, strong OSS brand, IBM resources",
+    leveling:"Staff PE needs cross-org platform ownership."},
+
+  {cat:"devops",company:"Cloudflare",color:"#F6821F",letter:"C",stage:"Public · $40B",
+    title:"Senior SRE / DevOps Engineer",location:"Remote (US / EMEA)",type:"Full-time",remote:true,posted:"1d ago",isNew:true,
+    tc:"$165,000 – $210,000",base:"$140,000 – $170,000",equity:"$25K–$40K/yr RSU",
+    match:84,level:"Senior",yoe:"5–8 years",
+    skills:["Go","Kubernetes","Prometheus","Terraform","Linux","Networking","Rust","CI/CD"],
+    desc:"Run and improve Cloudflare's global edge network spanning 310+ cities. Own reliability, deployment pipelines, capacity planning, and observability for services handling 10% of global internet traffic.",
+    interview:"Technical screen → SRE scenario panel → Systems design → On-call simulation. 3 weeks.",
+    stack:"Go, Rust, Kubernetes, Prometheus/Grafana, Terraform, BGP/Anycast, eBPF",
+    teamSize:"12 SREs globally distributed",why:"Remote-first, internet-scale problems, strong eng brand",
+    leveling:"Staff SRE at 8+ years with global reliability ownership."},
+
+  {cat:"devops",company:"Confluent",color:"#CC1F28",letter:"C",stage:"Public · $10B",
+    title:"Senior DevOps / Platform Engineer",location:"Remote (US)",type:"Full-time",remote:true,posted:"3d ago",isNew:false,
+    tc:"$160,000 – $205,000",base:"$130,000 – $160,000",equity:"$25K–$40K/yr RSU",
+    match:77,level:"Senior",yoe:"5–8 years",
+    skills:["Kafka","Kubernetes","Terraform","AWS","Go","Python","Observability","CI/CD"],
+    desc:"Build and operate Confluent Cloud's multi-tenant Kafka infrastructure. Own the deployment platform, observability stack, and self-service tooling for Confluent's internal product teams.",
+    interview:"Recruiter → Technical screen → Platform design round → Cultural. 3 weeks.",
+    stack:"Kafka, Kubernetes, Terraform, AWS/GCP/Azure, Go, Grafana, Datadog",
+    teamSize:"9 platform engineers",why:"Remote-first, Apache Kafka expertise, strong data engineering culture",
+    leveling:"Staff at 8+ years or with multi-cloud platform ownership."},
+
+  // ── MOBILE ──
+  {cat:"mobile",company:"Uber",color:"#000000",letter:"U",stage:"Public · $170B",
+    title:"Senior iOS Engineer — Rider App",location:"San Francisco, CA / Remote",type:"Full-time",remote:true,posted:"2d ago",isNew:false,
+    tc:"$195,000 – $255,000",base:"$160,000 – $195,000",equity:"$35K–$60K/yr RSU",
+    match:83,level:"Senior",yoe:"5–8 years",
+    skills:["Swift","SwiftUI","UIKit","Combine","MVVM","XCTest","Performance","Core Location"],
+    desc:"Build the iOS Rider app used by 130M+ monthly users. Own critical user flows — trip booking, real-time tracking, payments — with bar-raising performance, reliability, and accessibility standards.",
+    interview:"Recruiter → iOS take-home → Technical panel (Swift, iOS internals, system design) → Values. 3 weeks.",
+    stack:"Swift, SwiftUI, UIKit, Combine, XCTest, Xcode, Instruments, RIBs architecture",
+    teamSize:"12 iOS engineers across Rider teams",why:"Hybrid-remote, strong brand, global scale challenges",
+    leveling:"Staff iOS at 8+ years with platform-wide architectural scope."},
+
+  {cat:"mobile",company:"Spotify",color:"#1DB954",letter:"S",stage:"Public · $70B",
+    title:"Senior Android Engineer — Player",location:"Remote (US/Europe)",type:"Full-time",remote:true,posted:"4d ago",isNew:false,
+    tc:"$175,000 – $225,000",base:"$145,000 – $175,000",equity:"$28K–$48K/yr RSU",
+    match:80,level:"Senior",yoe:"5–8 years",
+    skills:["Kotlin","Android","Jetpack Compose","Coroutines","MVVM","ExoPlayer","Media APIs"],
+    desc:"Own the Android music player experience — playback engine, queue management, offline mode, and home feed — for 600M+ users across 180 markets.",
+    interview:"Recruiter → Technical screen → Async take-home → Panels (Android internals, Kotlin, architecture). 3 weeks.",
+    stack:"Kotlin, Jetpack Compose, Coroutines, ExoPlayer, Retrofit, Room, Hilt",
+    teamSize:"8 Android engineers on Player squad",why:"Stockholm or remote, music-driven culture, global impact",
+    leveling:"Staff at 9+ years or with cross-squad architectural ownership."},
+
+  // ── ML / AI ──
+  {cat:"ml",company:"OpenAI",color:"#10A37F",letter:"O",stage:"Private · $300B val",
+    title:"Senior ML Engineer — Inference",location:"San Francisco, CA",type:"Full-time",remote:false,posted:"1d ago",isNew:true,
+    tc:"$300,000 – $450,000",base:"$220,000 – $280,000",equity:"$80K–$170K/yr options",
+    match:72,level:"Senior / Staff",yoe:"5–10 years",
+    skills:["Python","PyTorch","CUDA","Triton","C++","Distributed Training","LLM","Systems"],
+    desc:"Optimize inference serving infrastructure for GPT-4, o1, and next-gen models. Own kernel optimization, batching strategies, quantization, and latency/throughput at global scale.",
+    interview:"Recruiter → Technical screen → Research presentation → Onsite 4x (ML systems, coding, research, values). 4–6 weeks.",
+    stack:"Python, PyTorch, CUDA, Triton, C++, vLLM, Kubernetes, A100/H100 clusters",
+    teamSize:"10–15 engineers per team",why:"Highest pre-IPO equity in AI, world-class mission, cutting edge research",
+    leveling:"Bar is extremely high. ML systems + distributed training depth required."},
+
+  {cat:"ml",company:"Anthropic",color:"#D4A96A",letter:"A",stage:"Private · $61B val",
+    title:"Senior Research Engineer — Training",location:"San Francisco, CA",type:"Full-time",remote:false,posted:"2d ago",isNew:false,
+    tc:"$280,000 – $400,000",base:"$210,000 – $260,000",equity:"$70K–$140K/yr options",
+    match:70,level:"Senior / Staff",yoe:"5–9 years",
+    skills:["Python","JAX","PyTorch","Distributed Training","RLHF","Transformers","CUDA","C++"],
+    desc:"Work on Claude's training infrastructure and research pipelines. Own distributed training, RLHF pipelines, and large-scale experiment infrastructure powering frontier AI safety research.",
+    interview:"Technical screen → Research presentation → Onsite 5x panels. 4–5 weeks.",
+    stack:"Python, JAX, PyTorch, CUDA, Kubernetes, GCS, TPUs/H100s",
+    teamSize:"8–12 per team, flat structure",why:"Frontier AI safety mission, competitive equity, collegial culture",
+    leveling:"Extremely high bar. PhD or equivalent research depth expected."},
+
+  {cat:"ml",company:"Palantir",color:"#1A1A1A",letter:"P",stage:"Public · $60B",
+    title:"Senior ML Platform Engineer",location:"New York, NY / Denver, CO",type:"Full-time",remote:false,posted:"3d ago",isNew:false,
+    tc:"$185,000 – $240,000",base:"$155,000 – $185,000",equity:"$30K–$55K/yr RSU",
+    match:79,level:"Senior",yoe:"5–8 years",
+    skills:["Python","PyTorch","MLflow","Kubernetes","Spark","Feature Engineering","SQL","Scala"],
+    desc:"Build ML platform infrastructure inside Palantir's AIP product — the operating system for AI in government, defense, and enterprise. Own model lifecycle, feature pipelines, and deployment tooling.",
+    interview:"Recruiter → Bootcamp-style technical week → Deployments interview. Unique process — plan 2 weeks.",
+    stack:"Python, PyTorch, Spark, Kubernetes, Palantir Foundry, AIP APIs",
+    teamSize:"6 platform engineers per product area",why:"Unusual culture, strong mission, meaningful real-world deployment",
+    leveling:"Senior. Staff requires principal engineering scope across AIP products."},
+
+  // ── PROJECT MANAGEMENT ──
+  {cat:"pm",company:"Google",color:"#4285F4",letter:"G",stage:"Public · $2.2T",
+    title:"Senior Technical Program Manager",location:"Sunnyvale, CA (Hybrid)",type:"Full-time",remote:false,posted:"2d ago",isNew:false,
+    tc:"$200,000 – $265,000",base:"$155,000 – $190,000",equity:"$45K–$75K/yr RSU",
+    match:84,level:"L6 / Senior TPM",yoe:"7–12 years",
+    skills:["Program Management","Cross-functional Leadership","Data Analysis","Risk Mgmt","OKRs","Roadmapping","SQL"],
+    desc:"Drive technical programs across Google Cloud's data and AI infrastructure. Own roadmap execution, cross-team dependencies, risk mitigation, and executive communications for multi-year platform initiatives.",
+    interview:"Recruiter → Phone screen → Onsite 5x panels (execution, analytical, leadership, Googleyness). 4 weeks.",
+    stack:"JIRA, Tableau, SQL, Google Workspace, roadmap tools",
+    teamSize:"Leading 3 eng teams (~25 total engineers)",why:"Top-of-market RSU, global mobility, scale of impact",
+    leveling:"L6 TPM. L7 Principal TPM needs organization-wide program scope."},
+
+  {cat:"pm",company:"Microsoft",color:"#0078D4",letter:"M",stage:"Public · $3.2T",
+    title:"Senior Product Manager — Azure AI",location:"Redmond, WA / Remote",type:"Full-time",remote:true,posted:"3d ago",isNew:false,
+    tc:"$185,000 – $240,000",base:"$155,000 – $185,000",equity:"$28K–$55K/yr RSU+ESPP",
+    match:81,level:"L65 / Senior PM",yoe:"6–10 years",
+    skills:["Product Strategy","Data Analysis","AI/ML","Azure","Stakeholder Management","PRDs","Agile"],
+    desc:"Own the product strategy for Azure AI services used by 300K+ enterprise customers. Drive roadmap, partner with engineering and design, and represent the customer in all platform decisions.",
+    interview:"Recruiter → PM screen → Design exercise → Onsite 4x (strategy, analytics, execution, leadership). 3.5 weeks.",
+    stack:"Azure DevOps, Power BI, Excel, customer feedback tools",
+    teamSize:"PM leading 2 engineering pods (16 engineers)",why:"Hybrid-remote, ESPP, career path to Director",
+    leveling:"L65 Senior PM. Partner PM or Principal PM at L67 next."},
+
+  {cat:"pm",company:"Atlassian",color:"#0052CC",letter:"A",stage:"Public · $48B",
+    title:"Senior Engineering Manager",location:"Remote (US / Australia)",type:"Full-time",remote:true,posted:"4d ago",isNew:false,
+    tc:"$200,000 – $250,000",base:"$170,000 – $205,000",equity:"$30K–$45K/yr RSU",
+    match:76,level:"EM / M2",yoe:"6–10 years",
+    skills:["Engineering Management","Agile","JIRA","Technical Leadership","Hiring","OKRs","Roadmapping"],
+    desc:"Lead a team of 8 backend engineers building Confluence's real-time collaboration features. Own hiring, career development, delivery, and technical direction for your team.",
+    interview:"Recruiter → People leadership screen → Technical depth → Exec presentation → Values. 3–4 weeks.",
+    stack:"JIRA, Confluence, Slack, Datadog, team dashboards",
+    teamSize:"8 direct reports + cross-functional partners",why:"Async-first, distributed team, strong leadership culture",
+    leveling:"M2 EM. Director at 10+ years with multi-team scope."},
+
+  // ── C2C / 1099 — H1B · H4 EAD FRIENDLY ──
+  {cat:"data",empType:"c2c",company:"Infosys BPM",color:"#007CC3",letter:"I",stage:"Staffing · Fortune 500 clients",
+    title:"Sr. Data Engineer — Azure Databricks (C2C/1099)",location:"Remote (US)",type:"C2C / 1099",remote:true,posted:"3h ago",isNew:true,
+    tc:"$80 – $92/hr",base:"$80 – $92/hr",equity:"N/A",
+    match:90,level:"Senior",yoe:"5–8 years",
+    skills:["PySpark","Databricks","Azure","Delta Lake","ADF","Python","SQL"],
+    visa:"H1B Transfer OK · H4 EAD OK · GC · USC",c2cRate:"$80–$92/hr",duration:"12 months (extendable)",
+    desc:"Infosys is staffing a remote Sr. Data Engineer for a Tier-1 US bank client. 100% C2C or 1099. Build and maintain medallion architecture pipelines (Bronze→Silver→Gold) on Azure Databricks. H1B transfer and H4 EAD candidates strongly encouraged to apply.",
+    interview:"1x technical screen with Infosys → 1x client interview (60 min). Offer in 3–5 business days.",
+    stack:"Azure Data Factory, Databricks, PySpark, Delta Lake, Python, SQL, Unity Catalog",
+    teamSize:"Client team of 8 engineers",why:"100% remote · H1B transfer handled · Quick hire · W2 or C2C",
+    leveling:"5+ years ADF/Databricks. Azure cert (DP-203) a plus.",process:"Client: US financial services"},
+
+  {cat:"backend",empType:"c2c",company:"TCS Digital",color:"#0B1F8F",letter:"T",stage:"Staffing · Fortune 500 clients",
+    title:"Sr. Java Developer — Microservices (C2C/1099)",location:"Remote (US)",type:"C2C / 1099",remote:true,posted:"6h ago",isNew:true,
+    tc:"$75 – $88/hr",base:"$75 – $88/hr",equity:"N/A",
+    match:87,level:"Senior",yoe:"5–9 years",
+    skills:["Java","Spring Boot","Microservices","Kafka","AWS","Docker","Kubernetes","PostgreSQL"],
+    visa:"H1B Transfer OK · H4 EAD OK · GC · USC",c2cRate:"$75–$88/hr",duration:"12 months (extendable)",
+    desc:"TCS Digital is placing a Sr. Java Developer on a fintech client engagement. Build high-throughput microservices using Java 17 + Spring Boot. Full C2C/1099 engagement — no sponsorship needed, H1B transfers and H4 EAD welcome.",
+    interview:"TCS screening call → client technical panel (2x30 min). Fast process — typically within 1 week.",
+    stack:"Java 17, Spring Boot 3, Kafka, AWS (ECS, S3, RDS), Docker, Kubernetes, PostgreSQL",
+    teamSize:"10-engineer client team",why:"Remote · C2C/1099 or W2 · H1B transfer supported · 12-month contract",
+    leveling:"Senior Java developer with 5+ years Spring Boot microservices.",process:"Client: Fintech / Insurance"},
+
+  {cat:"devops",empType:"c2c",company:"Wipro Technologies",color:"#731982",letter:"W",stage:"Staffing · Enterprise clients",
+    title:"Sr. DevOps / Cloud Engineer — AWS (C2C/1099)",location:"Remote (US)",type:"C2C / 1099",remote:true,posted:"1d ago",isNew:false,
+    tc:"$72 – $85/hr",base:"$72 – $85/hr",equity:"N/A",
+    match:85,level:"Senior",yoe:"5–8 years",
+    skills:["AWS","Kubernetes","Terraform","Jenkins","Docker","Python","Ansible","Prometheus"],
+    visa:"H1B Transfer OK · H4 EAD OK · GC · USC",c2cRate:"$72–$85/hr",duration:"6–12 months",
+    desc:"Wipro is hiring a remote Sr. DevOps Engineer for a healthcare cloud migration engagement. Own CI/CD pipelines, EKS cluster management, and Terraform IaC. C2C or 1099 contract. H1B transfers and H4 EAD candidates welcome.",
+    interview:"Wipro pre-screen → client technical round (60 min). Offer typically within 5 days.",
+    stack:"AWS (EKS, Lambda, S3, RDS, CloudWatch), Terraform, Jenkins, Ansible, Docker, Python",
+    teamSize:"6-engineer platform team",why:"Remote · H1B/H4 EAD welcome · Quick start (2-week notice OK)",
+    leveling:"5+ years AWS + Terraform. CKA or AWS cert preferred.",process:"Client: Healthcare / Pharma enterprise"},
+
+  {cat:"data",empType:"c2c",company:"HCLTech",color:"#007AB4",letter:"H",stage:"Staffing · Global enterprise",
+    title:"SAP Data Engineer / BW4HANA (C2C/1099)",location:"Remote (US) / Irving, TX",type:"C2C / 1099",remote:true,posted:"2d ago",isNew:false,
+    tc:"$85 – $100/hr",base:"$85 – $100/hr",equity:"N/A",
+    match:82,level:"Senior",yoe:"6–10 years",
+    skills:["SAP BW4HANA","SAP HANA","ABAP","SAP Datasphere","ETL","SQL","Data Modeling"],
+    visa:"H1B Transfer OK · H4 EAD OK · GC · USC",c2cRate:"$85–$100/hr",duration:"12 months (extendable)",
+    desc:"HCLTech is staffing an SAP BW4HANA Data Engineer for a Fortune 500 manufacturing client. Design and implement SAP Datasphere/BW4HANA data models, CompositeProviders, and Open ODS views. Strong demand — H1B and H4 EAD candidates actively sought.",
+    interview:"HCL pre-screen → client SAP technical panel (90 min). 5–7 day offer timeline.",
+    stack:"SAP BW4HANA, SAP Datasphere, HANA Studio, ABAP, SQL, SAP Data Services",
+    teamSize:"4 SAP engineers on the engagement",why:"High-demand SAP skills · Remote + Irving TX option · H1B transfer",
+    leveling:"6+ years SAP BW/HANA. SAP certification strongly preferred.",process:"Client: Manufacturing / CPG"},
+
+  {cat:"backend",empType:"c2c",company:"Cognizant",color:"#2D5BE3",letter:"C",stage:"Staffing · Fortune 100 clients",
+    title:"Full Stack Developer — React + Node.js (C2C/1099)",location:"Remote (US)",type:"C2C / 1099",remote:true,posted:"3d ago",isNew:false,
+    tc:"$68 – $80/hr",base:"$68 – $80/hr",equity:"N/A",
+    match:84,level:"Senior / Mid-Senior",yoe:"4–8 years",
+    skills:["React","Node.js","TypeScript","PostgreSQL","AWS","GraphQL","REST APIs","Docker"],
+    visa:"H1B Transfer OK · H4 EAD OK · GC · USC",c2cRate:"$68–$80/hr",duration:"6–9 months",
+    desc:"Cognizant Digital is placing a Full Stack Developer on a retail/e-commerce client. Build React + Node.js features for a high-traffic commerce platform. C2C/1099 or W2. H1B and H4 EAD candidates welcome — no sponsorship required for this role.",
+    interview:"Cognizant screen → client 1x technical (45 min coding). Fast — offer within 3 days of client interview.",
+    stack:"React 18, TypeScript, Node.js, PostgreSQL, AWS (Lambda, RDS), GraphQL, Docker",
+    teamSize:"8 full-stack engineers",why:"Remote · Fast hire · H1B/H4 EAD friendly · C2C or W2",
+    leveling:"4+ years React + Node.js. Full-stack depth required.",process:"Client: Retail / E-commerce"},
+
+  {cat:"embedded",empType:"c2c",company:"iGate / Capgemini",color:"#003D8F",letter:"C",stage:"Staffing · Automotive clients",
+    title:"Embedded C Engineer — Automotive (C2C/1099)",location:"Remote + Occasional Detroit, MI",type:"C2C / 1099",remote:true,posted:"4d ago",isNew:false,
+    tc:"$70 – $85/hr",base:"$70 – $85/hr",equity:"N/A",
+    match:80,level:"Senior",yoe:"5–9 years",
+    skills:["C","C++","AUTOSAR","CAN","UART","SPI","FreeRTOS","Vector CANdb++","dSPACE"],
+    visa:"H1B Transfer OK · H4 EAD OK · GC · USC",c2cRate:"$70–$85/hr",duration:"12 months",
+    desc:"Capgemini Engineering is staffing an Embedded C Developer for a Tier-1 automotive supplier. Own BSP, AUTOSAR stack integration, and CAN/LIN driver development for next-gen ECU firmware. Mostly remote with quarterly on-site in Detroit. H1B and H4 EAD welcome.",
+    interview:"Capgemini screening → client technical (embedded C code review + system design). 5–7 days to offer.",
+    stack:"C, C++, AUTOSAR, FreeRTOS, Vector CANdb++, dSPACE, Lauterbach TRACE32, Python",
+    teamSize:"6 embedded engineers on the program",why:"Strong demand · Remote-first · H1B transfer OK · 12-month contract",
+    leveling:"5+ years embedded C/C++. AUTOSAR or automotive domain experience strongly preferred.",process:"Client: Tier-1 Automotive supplier"},
+
+  {cat:"ml",empType:"c2c",company:"LTIMindtree",color:"#E02B20",letter:"L",stage:"Staffing · AI/ML clients",
+    title:"ML / AI Engineer — GenAI & LLM (C2C/1099)",location:"Remote (US)",type:"C2C / 1099",remote:true,posted:"5h ago",isNew:true,
+    tc:"$90 – $110/hr",base:"$90 – $110/hr",equity:"N/A",
+    match:86,level:"Senior",yoe:"4–8 years",
+    skills:["Python","LangChain","OpenAI API","RAG","Vector DBs","PyTorch","FastAPI","Azure OpenAI"],
+    visa:"H1B Transfer OK · H4 EAD OK · GC · USC",c2cRate:"$90–$110/hr",duration:"6–12 months",
+    desc:"LTIMindtree is placing an ML/AI Engineer with GenAI expertise on a financial services client. Build RAG pipelines, fine-tune LLMs, and deploy production-grade AI APIs using Azure OpenAI. High-demand role — H1B and H4 EAD candidates actively preferred.",
+    interview:"LTI screen → client technical (LLM architecture + live coding). Typically 3–5 days from screen to offer.",
+    stack:"Python, LangChain, Azure OpenAI, Pinecone/Chroma, FastAPI, PyTorch, Docker, Azure",
+    teamSize:"5 ML engineers on the AI platform",why:"Top market rate · Remote · GenAI demand surge · H1B transfer",
+    leveling:"4+ years Python ML + 1+ year GenAI/LLM production experience.",process:"Client: Financial services / Insurance"},
+
+  {cat:"devops",empType:"c2c",company:"Mastech Digital",color:"#1A5276",letter:"M",stage:"Staffing · Mid-market clients",
+    title:"Salesforce / MuleSoft Developer (C2C/1099)",location:"Remote (US)",type:"C2C / 1099",remote:true,posted:"2d ago",isNew:false,
+    tc:"$78 – $92/hr",base:"$78 – $92/hr",equity:"N/A",
+    match:81,level:"Senior",yoe:"5–9 years",
+    skills:["Salesforce","MuleSoft","Apex","SOQL","REST APIs","Integrations","Flow","CPQ"],
+    visa:"H1B Transfer OK · H4 EAD OK · GC · USC",c2cRate:"$78–$92/hr",duration:"12 months",
+    desc:"Mastech Digital is staffing a Salesforce/MuleSoft Developer for a healthcare ISV. Build Apex triggers, LWC components, MuleSoft integration flows, and CPQ configurations. C2C or 1099. H1B and H4 EAD candidates welcome — fast interview process.",
+    interview:"Mastech pre-screen → client 2x panels (Apex coding + integration design). 5 days to offer.",
+    stack:"Salesforce (Sales Cloud, CPQ, LWC), MuleSoft Anypoint, Apex, SOQL, REST/SOAP APIs",
+    teamSize:"4 Salesforce devs on the client program",why:"High-demand Salesforce skills · Remote · H1B transfer · Quick hire",
+    leveling:"Salesforce Certified Platform Developer I/II strongly preferred.",process:"Client: Healthcare SaaS"},
+
+  {cat:"pm",empType:"c2c",company:"Virtusa",color:"#E84343",letter:"V",stage:"Staffing · Banking clients",
+    title:"Business Analyst / Scrum Master (C2C/1099)",location:"Remote (US)",type:"C2C / 1099",remote:true,posted:"3d ago",isNew:false,
+    tc:"$60 – $72/hr",base:"$60 – $72/hr",equity:"N/A",
+    match:79,level:"Senior BA / SM",yoe:"5–8 years",
+    skills:["Business Analysis","Agile","JIRA","Confluence","User Stories","SQL","Scrum","Stakeholder Mgmt"],
+    visa:"H1B Transfer OK · H4 EAD OK · GC · USC",c2cRate:"$60–$72/hr",duration:"6–12 months",
+    desc:"Virtusa is placing a Sr. Business Analyst / Scrum Master for a US banking client's digital transformation. Own requirements gathering, sprint ceremonies, backlog grooming, and stakeholder reporting. H1B and H4 EAD candidates welcome.",
+    interview:"Virtusa pre-screen → client manager interview (45 min). 3–5 days to offer.",
+    stack:"JIRA, Confluence, SQL, MS Visio, SharePoint, Azure DevOps",
+    teamSize:"Leading a squad of 6 engineers + QA",why:"Remote · H1B transfer OK · Stable 12-month engagement · Banking domain",
+    leveling:"CSPO or CSM certification preferred. 5+ years BA or Scrum experience.",process:"Client: Regional / National bank"},
+
+  // ── SECURITY ──
+  {cat:"security",company:"CrowdStrike",color:"#E60000",letter:"C",stage:"Public · $95B",
+    title:"Senior Security Engineer — Detection",location:"Remote (US)",type:"Full-time",remote:true,posted:"1d ago",isNew:true,
+    tc:"$175,000 – $225,000",base:"$145,000 – $175,000",equity:"$30K–$50K/yr RSU",
+    match:85,level:"Senior",yoe:"5–8 years",
+    skills:["Python","C++","Threat Detection","YARA","Malware Analysis","Reverse Engineering","Linux","Windows Internals"],
+    desc:"Build detection engineering capabilities for CrowdStrike Falcon's EDR platform protecting 29K+ customers. Research threat actor TTPs, develop detection logic, and tune ML-based behavioral analytics.",
+    interview:"Recruiter → Technical screen (security scenario) → Detection engineering challenge → Onsite 3x. 3 weeks.",
+    stack:"Python, C++, YARA, eBPF, Windows internals, Splunk, proprietary Falcon platform",
+    teamSize:"10 detection engineers globally",why:"Remote, mission-critical work, world-class threat intel",
+    leveling:"Staff Detection Eng needs cross-product detection strategy ownership."},
+
+  {cat:"security",company:"Palo Alto Networks",color:"#FA582D",letter:"P",stage:"Public · $120B",
+    title:"Senior Cloud Security Engineer",location:"Santa Clara, CA / Remote",type:"Full-time",remote:true,posted:"3d ago",isNew:false,
+    tc:"$185,000 – $235,000",base:"$150,000 – $185,000",equity:"$35K–$50K/yr RSU",
+    match:80,level:"Senior",yoe:"5–8 years",
+    skills:["AWS","Azure","GCP","Terraform","Kubernetes","IAM","CSPM","Python","Zero Trust"],
+    desc:"Design and implement cloud security posture management (CSPM) for Prisma Cloud protecting Fortune 500 environments. Own detection of cloud misconfigurations, IAM privilege escalation, and container security.",
+    interview:"Recruiter → Technical screen → Cloud security scenario → Architecture panel → Values. 3 weeks.",
+    stack:"Python, Terraform, AWS/Azure/GCP, Kubernetes, Prisma Cloud APIs",
+    teamSize:"8 cloud security engineers",why:"Hybrid-remote, strong security brand, RSU refreshes",
+    leveling:"Principal Security Eng at 9+ years with architecture-level scope."}
+];
+
+const INTEL = [
+  {company:"Databricks",color:"#FF6154",letter:"D",stage:"Series I · $43B",
+   rows:[["Interview rounds","3 rounds (~2.5 wks)"],["Coding style","LeetCode Medium + SQL"],["Offer speed","5–7 days after final"],["Remote policy","Fully remote ✓"],["Attrition rate","Low — strong retention"],["Stack maturity","Best-in-class data stack"]]},
+  {company:"Microsoft",color:"#0078D4",letter:"M",stage:"Public · $3.2T",
+   rows:[["Interview rounds","4 rounds (~3 wks)"],["Coding style","Algorithms + system design"],["Offer speed","2–3 weeks after final"],["Remote policy","Hybrid 3 days/wk"],["Attrition rate","Medium"],["Stack maturity","Azure-first, evolving"]]},
+  {company:"Stripe",color:"#6772E5",letter:"S",stage:"Pre-IPO · $65B",
+   rows:[["Interview rounds","5 rounds (~4 wks)"],["Coding style","High bar — Stripe interviews hard"],["Offer speed","1 week after final"],["Remote policy","SF office preferred"],["Attrition rate","Low — high-performers stay"],["Stack maturity","Excellent engineering culture"]]}
+];
+
+// STATE
+let activeCategory = 'all';
+let activeEmpType = 'all';
+let searchQuery = '';
+
+const EMP_LABELS = {fulltime:'Full-Time',contract:'Contract W2',c2c:'C2C / 1099',parttime:'Part-Time'};
+const EMP_COLORS = {fulltime:'#1E293B',contract:'#2563EB',c2c:'#D97706',parttime:'#16A34A'};
+
+function jobMatchesSearch(j, q) {
+  if (!q) return true;
+  const haystack = [j.title, j.company, j.stage, j.location, j.level, j.visa||'', ...(j.skills||[])].join(' ').toLowerCase();
+  return q.toLowerCase().split(/\s+/).every(word => haystack.includes(word));
+}
+
+function getFilteredJobs() {
+  return JOBS.filter((j, i) => {
+    j._origIdx = i;
+    const emp = j.empType || 'fulltime';
+    const catOk = activeCategory === 'all' || j.cat === activeCategory;
+    const empOk = activeEmpType === 'all' ||
+      (activeEmpType === 'remote' ? j.remote : emp === activeEmpType);
+    const searchOk = jobMatchesSearch(j, searchQuery);
+    return catOk && empOk && searchOk;
+  });
+}
+
+function empBadge(j) {
+  const emp = j.empType || 'fulltime';
+  if (emp === 'fulltime') return '';
+  const label = EMP_LABELS[emp] || emp;
+  const color = EMP_COLORS[emp] || '#64748B';
+  return `<span style="font-size:.7rem;font-weight:700;color:${color};background:${color}18;border:1px solid ${color}40;padding:.18rem .55rem;border-radius:6px;margin-left:.35rem">${label}</span>`;
+}
+
+function visaBadge(j) {
+  if (!j.visa) return '';
+  return `<span style="font-size:.7rem;font-weight:600;color:#059669;background:#ECFDF5;border:1px solid #A7F3D0;padding:.18rem .55rem;border-radius:6px">✓ ${j.visa}</span>`;
+}
+
+function renderJobs() {
+  const filtered = getFilteredJobs();
+  const grid = document.getElementById('jobs-grid');
+  const noRes = document.getElementById('no-results');
+  const count = document.getElementById('search-count');
+  const clearBtn = document.getElementById('search-clear');
+
+  clearBtn.style.display = searchQuery ? 'flex' : 'none';
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '';
+    noRes.style.display = 'block';
+    count.textContent = 'No results found';
+    return;
+  }
+
+  noRes.style.display = 'none';
+  const isFiltered = searchQuery || activeCategory !== 'all' || activeEmpType !== 'all';
+  count.textContent = isFiltered
+    ? `${filtered.length} role${filtered.length !== 1 ? 's' : ''} found`
+    : `${JOBS.length} senior roles · updated daily`;
+
+  grid.innerHTML = filtered.map((j, i) => `
+    <div class="job-card" onclick="openModal(${JOBS.indexOf(j)})" style="animation-delay:${i*0.05}s">
+      <div class="job-card-top">
+        <div class="company-info">
+          <div class="company-logo" style="background:${j.color}">${j.letter}</div>
+          <div><div class="company-name">${j.company}</div><div class="company-stage">${j.stage}</div></div>
+        </div>
+        <div class="match-score">
+          <div class="match-pct">${j.match}%</div>
+          <div class="match-lbl">match</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;flex-wrap:wrap">
+        <div class="job-title">${j.title}</div>
+        ${j.isNew ? '<span class="new-badge">NEW</span>' : ''}
+        ${empBadge(j)}
+      </div>
+      <div class="job-meta">
+        <span class="meta-tag">📍 ${j.location}</span>
+        <span class="meta-tag">🎯 ${j.level}</span>
+        <span class="meta-tag">⏱ ${j.yoe}</span>
+        ${j.remote ? '<span class="remote-badge">Remote</span>' : ''}
+      </div>
+      ${j.visa ? `<div style="margin:.4rem 0">${visaBadge(j)}</div>` : ''}
+      <div class="job-salary"><span class="salary-range">${j.tc}</span>${j.empType==='c2c'?' / hr':' TC'}</div>
+      <div class="job-skills">${j.skills.slice(0,4).map(s=>`<span class="skill-tag">${s}</span>`).join('')}${j.skills.length>4?`<span class="skill-tag">+${j.skills.length-4}</span>`:''}</div>
+      <div class="job-footer">
+        <span class="posted-time">Posted ${j.posted}</span>
+        <button class="apply-btn">View & Apply →</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// RENDER INTEL
+function renderIntel(){
+  const grid=document.getElementById('intel-grid');
+  grid.innerHTML=INTEL.map(c=>`
+    <div class="intel-card">
+      <div class="intel-header">
+        <div class="intel-logo" style="background:${c.color}">${c.letter}</div>
+        <div><div class="intel-company">${c.company}</div><div class="intel-stage">${c.stage}</div></div>
+      </div>
+      <div class="intel-body">
+        ${c.rows.map(([k,v],i)=>`
+          <div class="intel-row">
+            <span class="intel-key">${k}</span>
+            <span class="intel-val ${i<2?'intel-good':i===5?'intel-good':''}">${v}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// MODAL
+function openModal(i){
+  const j=JOBS[i];
+  const isC2C = j.empType === 'c2c';
+  document.getElementById('modal-company-name').textContent=j.company+' · '+j.stage;
+  document.getElementById('modal-title').textContent=j.title;
+  document.getElementById('modal-meta').innerHTML=`
+    <span class="meta-tag">📍 ${j.location}</span>
+    <span class="meta-tag">💰 ${j.tc}${isC2C?' /hr':' TC'}</span>
+    <span class="meta-tag">🎯 ${j.level}</span>
+    ${j.remote?'<span class="remote-badge">Remote</span>':''}
+    ${isC2C?'<span style="font-size:.75rem;font-weight:700;color:#D97706;background:#FEF3C7;border:1px solid #FCD34D;padding:.2rem .6rem;border-radius:6px">C2C / 1099</span>':''}
+    ${j.visa?`<span style="font-size:.75rem;font-weight:600;color:#059669;background:#ECFDF5;border:1px solid #A7F3D0;padding:.2rem .6rem;border-radius:6px">✓ ${j.visa}</span>`:''}
+  `;
+  document.getElementById('modal-body').innerHTML=`
+    <div class="modal-section">
+      <h4>About the role</h4>
+      <p style="font-size:.9rem;color:#475569;line-height:1.7">${j.desc}</p>
+    </div>
+    ${isC2C ? `
+    <div class="modal-section">
+      <h4>Contract Details</h4>
+      <div class="intel-grid-2">
+        <div class="intel-chip"><div class="intel-chip-label">Rate</div><div class="intel-chip-val" style="color:#10B981">${j.c2cRate||j.tc}/hr</div></div>
+        <div class="intel-chip"><div class="intel-chip-label">Duration</div><div class="intel-chip-val">${j.duration||'6–12 months'}</div></div>
+        <div class="intel-chip"><div class="intel-chip-label">Type</div><div class="intel-chip-val">C2C / 1099 / W2</div></div>
+        <div class="intel-chip"><div class="intel-chip-label">Experience</div><div class="intel-chip-val">${j.yoe}</div></div>
+      </div>
+      ${j.visa?`<div style="margin-top:.75rem;padding:.85rem 1rem;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;font-size:.875rem;color:#065F46"><strong>Visa eligibility:</strong> ${j.visa}<br><span style="font-size:.8rem;color:#047857;margin-top:.3rem;display:block">H1B transfer supported · H4 EAD OK · No employer sponsorship required</span></div>`:''}
+    </div>` : `
+    <div class="modal-section">
+      <h4>Compensation</h4>
+      <div class="intel-grid-2">
+        <div class="intel-chip"><div class="intel-chip-label">Total Comp</div><div class="intel-chip-val" style="color:#10B981">${j.tc}</div></div>
+        <div class="intel-chip"><div class="intel-chip-label">Base Salary</div><div class="intel-chip-val">${j.base}</div></div>
+        <div class="intel-chip"><div class="intel-chip-label">Equity / yr</div><div class="intel-chip-val">${j.equity}</div></div>
+        <div class="intel-chip"><div class="intel-chip-label">Experience</div><div class="intel-chip-val">${j.yoe}</div></div>
+      </div>
+    </div>`}
+    <div class="modal-section">
+      <h4>Interview process</h4>
+      <p style="font-size:.875rem;color:#475569;background:var(--surface);padding:1rem;border-radius:10px;line-height:1.6">${j.interview}</p>
+    </div>
+    <div class="modal-section">
+      <h4>Tech stack</h4>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">${j.stack.split(', ').map(s=>`<span class="skill-tag">${s}</span>`).join('')}</div>
+    </div>
+    <div class="modal-section">
+      <h4>Leveling signal</h4>
+      <p style="font-size:.875rem;color:var(--indigo);background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);padding:1rem;border-radius:10px">🎯 ${j.leveling}</p>
+    </div>
+    <div class="ai-tailor-box modal-section">
+      <h4 style="color:var(--indigo);margin-bottom:.75rem">✦ AI Application Assistant</h4>
+      <div class="tailor-items">
+        <div class="tailor-item">Tailored resume highlighting ${j.skills[0]} and ${j.skills[1]||j.skills[0]} experience</div>
+        <div class="tailor-item">Cover letter drafted from your profile in 30 seconds</div>
+        <div class="tailor-item">5 interview prep questions specific to ${j.company}'s process</div>
+        ${isC2C?'<div class="tailor-item">Rate negotiation guide for C2C / 1099 contracts</div>':'<div class="tailor-item">Negotiation script if you have a competing offer</div>'}
+      </div>
+    </div>
+    <button class="apply-action" onclick="event.stopPropagation();openAIAssist(${i})">Apply with AI Assist — Tailored for ${j.company} →</button>
+  `;
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(){
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+// SEARCH
+function clearSearch() {
+  document.getElementById('job-search').value = '';
+  searchQuery = '';
+  renderJobs();
+}
+document.getElementById('job-search').addEventListener('input', function() {
+  searchQuery = this.value.trim();
+  renderJobs();
+});
+
+// FILTER PILLS — category
+document.querySelectorAll('.filter-pill').forEach(p => {
+  p.addEventListener('click', function() {
+    document.querySelectorAll('.filter-pill').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    activeCategory = this.dataset.cat;
+    renderJobs();
+  });
+});
+
+// FILTER PILLS — employment type
+document.querySelectorAll('.emp-pill').forEach(p => {
+  p.addEventListener('click', function() {
+    document.querySelectorAll('.emp-pill').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    activeEmpType = this.dataset.emp;
+    renderJobs();
+  });
+});
+
+// SCROLL REVEAL
+function observeReveal(){
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');obs.unobserve(e.target);}});
+  },{threshold:0.08});
+  document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+}
+
+// DASH TABS
+document.querySelectorAll('.dash-tab').forEach(t=>{
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.dash-tab').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// INIT — render static fallback jobs immediately
+renderJobs();
+renderIntel();
+observeReveal();
+
+// ── LIVE API FEED ─────────────────────────────────────────────────────────
+// Once Supabase + Vercel API is live, this takes over from the static JOBS array.
+let apiMode     = false;   // true once API responds successfully
+let currentPage = 1;
+let totalJobs   = 0;
+let isFetching  = false;
+
+function buildApiUrl(page) {
+  const params = new URLSearchParams({ page, limit: 24 });
+  if (activeCategory !== 'all') params.set('cat', activeCategory);
+  if (activeEmpType !== 'all')  params.set('emp', activeEmpType);
+  if (searchQuery)              params.set('search', searchQuery);
+  return `/api/jobs?${params}`;
+}
+
+function showLiveBanner(total, c2c) {
+  let banner = document.getElementById('live-banner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'live-banner';
+    banner.style.cssText = [
+      'position:fixed;bottom:1.5rem;right:1.5rem;background:#0F172A;color:#fff',
+      'padding:.75rem 1.25rem;border-radius:12px;font-size:.82rem;font-weight:600',
+      'z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.25);display:flex;align-items:center;gap:.6rem'
+    ].join(';');
+    document.body.appendChild(banner);
+  }
+  banner.innerHTML = `<span style="width:8px;height:8px;border-radius:50%;background:#10B981;flex-shrink:0;animation:pulse 1.5s infinite"></span>
+    ${total.toLocaleString()} live jobs · ${c2c ? c2c.toLocaleString() + ' C2C/contract' : ''}`;
+  setTimeout(() => { if (banner) banner.remove(); }, 6000);
+}
+
+function renderPagination(total, page, limit) {
+  const pages = Math.ceil(total / limit);
+  let container = document.getElementById('pagination');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'pagination';
+    container.style.cssText = 'display:flex;justify-content:center;align-items:center;gap:.75rem;margin:2rem 0;flex-wrap:wrap';
+    document.getElementById('jobs-grid').insertAdjacentElement('afterend', container);
+  }
+  if (pages <= 1) { container.innerHTML = ''; return; }
+
+  const btn = (label, p, active) =>
+    `<button onclick="goToPage(${p})" style="padding:.5rem 1rem;border-radius:8px;border:1px solid ${active?'var(--indigo)':'var(--border)'};background:${active?'var(--indigo)':'var(--white)'};color:${active?'#fff':'var(--navy)'};font-weight:600;cursor:pointer;font-size:.82rem">${label}</button>`;
+
+  let html = page > 1 ? btn('← Prev', page - 1, false) : '';
+  const start = Math.max(1, page - 2), end = Math.min(pages, page + 2);
+  if (start > 1) html += btn('1', 1, false) + (start > 2 ? '<span style="color:var(--slate)">…</span>' : '');
+  for (let p = start; p <= end; p++) html += btn(p, p, p === page);
+  if (end < pages) html += (end < pages - 1 ? '<span style="color:var(--slate)">…</span>' : '') + btn(pages, pages, false);
+  if (page < pages) html += btn('Next →', page + 1, false);
+  container.innerHTML = html;
+}
+
+async function fetchFromAPI(page = 1) {
+  if (isFetching) return;
+  isFetching = true;
+
+  // Show loading state
+  const grid = document.getElementById('jobs-grid');
+  if (!apiMode) {
+    grid.style.opacity = '0.5';
+  }
+
+  try {
+    const res = await fetch(buildApiUrl(page));
+    if (!res.ok) throw new Error('API not ready');
+    const { jobs, total, totalPages } = await res.json();
+
+    if (!jobs || !jobs.length) throw new Error('No results');
+
+    // Switch into API mode — replace static JOBS
+    apiMode = true;
+    currentPage = page;
+    totalJobs   = total;
+    grid.style.opacity = '1';
+
+    // Map API response to the shape the render functions expect
+    JOBS.length = 0;
+    jobs.forEach((j, idx) => {
+      JOBS.push({
+        ...j,
+        // field name mapping from snake_case → camelCase
+        empType:    j.emp_type || 'fulltime',
+        isNew:      j.is_new   || false,
+        remote:     j.is_remote || false,
+        posted:     j.posted_label || 'Recently',
+        match:      j.match || 80,
+        yoe:        j.yoe   || '5+ years',
+        skills:     Array.isArray(j.skills) ? j.skills : [],
+        interview:  j.interview  || 'Apply via company portal for process details.',
+        stack:      j.stack || (Array.isArray(j.skills) ? j.skills.join(', ') : ''),
+        teamSize:   j.team_size  || 'See job description',
+        why:        j.why || '',
+        leveling:   j.leveling   || 'See job description for level requirements.',
+        apply:      j.apply_url  || '',
+        desc:       j.description || '',
+        base:       j.base || 'Competitive',
+        equity:     j.equity || (j.emp_type === 'c2c' ? 'N/A' : 'See offer'),
+        tc:         j.tc    || 'Competitive',
+        color:      j.color || '#6366F1',
+        letter:     j.letter || j.company[0].toUpperCase(),
+        stage:      j.stage || 'Career Portal',
+        process:    j.process || j.source,
+      });
+    });
+
+    const count = document.getElementById('search-count');
+    count.textContent = `${total.toLocaleString()} roles found`;
+    renderJobs();
+    renderPagination(total, page, 24);
+
+    if (page === 1) {
+      // Fetch stats for banner
+      fetch('/api/stats').then(r => r.json()).then(s => {
+        showLiveBanner(s.total, s.c2c);
+      }).catch(() => showLiveBanner(total, 0));
+    }
+
+  } catch(e) {
+    // API not live yet — keep static jobs visible
+    grid.style.opacity = '1';
+    console.log('API not available, using static jobs:', e.message);
+  } finally {
+    isFetching = false;
+  }
+}
+
+function goToPage(page) {
+  currentPage = page;
+  fetchFromAPI(page);
+  document.getElementById('jobs').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Override filter/search to use API when available
+const _origRenderJobs = renderJobs;
+function renderJobsOrApi() {
+  if (apiMode) {
+    currentPage = 1;
+    fetchFromAPI(1);
+  } else {
+    _origRenderJobs();
+  }
+}
+
+// Patch all event listeners to use the API-aware version
+document.querySelectorAll('.filter-pill').forEach(p => {
+  p.addEventListener('click', () => setTimeout(renderJobsOrApi, 0));
+});
+document.querySelectorAll('.emp-pill').forEach(p => {
+  p.addEventListener('click', () => setTimeout(renderJobsOrApi, 0));
+});
+document.getElementById('job-search').addEventListener('input', () => setTimeout(renderJobsOrApi, 100));
+
+// Try the API on load — if live, it takes over; if not, static fallback stays
+fetchFromAPI(1);
+// Refresh every 30 min
+setInterval(() => fetchFromAPI(currentPage), 30 * 60 * 1000);
+
+// ── AI ASSIST ──────────────────────────────────────────────────────────────
+let aiJobIndex = null;
+
+function openAIAssist(i) {
+  aiJobIndex = i;
+  const j = JOBS[i];
+  document.getElementById('ai-modal-title').textContent = `Apply to ${j.company} — ${j.title}`;
+  showAIStep(1);
+  document.getElementById('resume-input').value = '';
+  document.getElementById('ai-modal').style.display = 'flex';
+  document.getElementById('ai-modal').style.alignItems = 'center';
+  document.getElementById('ai-modal').style.justifyContent = 'center';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAIModal() {
+  document.getElementById('ai-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  aiJobIndex = null;
+}
+
+function showAIStep(n) {
+  [1,2,3].forEach(s => {
+    const el = document.getElementById('ai-step-' + s);
+    if (el) el.style.display = s === n ? 'block' : 'none';
+  });
+}
+
+function showResultTab(name, btn) {
+  ['resume','cover','prep','nego'].forEach(t => {
+    document.getElementById('result-' + t).style.display = t === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.result-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function copyResult(id) {
+  const el = document.getElementById(id);
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const btn = el.parentElement.querySelector('.copy-btn');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  });
+}
+
+function goToApply() {
+  const j = JOBS[aiJobIndex];
+  closeAIModal();
+  if (j.apply) window.open(j.apply, '_blank');
+}
+
+function resetAI() {
+  showAIStep(1);
+  document.getElementById('resume-input').value = '';
+}
+
+function animateBar(targetPct, duration, cb) {
+  const bar = document.getElementById('gen-bar');
+  const start = performance.now();
+  const from = parseFloat(bar.style.width) || 0;
+  function tick(now) {
+    const p = Math.min((now - start) / duration, 1);
+    bar.style.width = (from + (targetPct - from) * p) + '%';
+    if (p < 1) requestAnimationFrame(tick);
+    else if (cb) cb();
+  }
+  requestAnimationFrame(tick);
+}
+
+function runAIAssist() {
+  const resume = document.getElementById('resume-input').value.trim();
+  if (!resume) {
+    document.getElementById('resume-input').style.borderColor = '#EF4444';
+    document.getElementById('resume-input').placeholder = 'Please paste your resume first…';
+    setTimeout(() => {
+      document.getElementById('resume-input').style.borderColor = '';
+    }, 2000);
+    return;
+  }
+
+  const j = JOBS[aiJobIndex];
+  showAIStep(2);
+  document.getElementById('gen-bar').style.width = '0%';
+
+  const steps = [
+    { status: 'Reading your resume…', sub: 'Extracting skills, titles, and accomplishments', pct: 20, delay: 600 },
+    { status: 'Analyzing job requirements…', sub: `Matching your background to ${j.company}'s stack`, pct: 45, delay: 700 },
+    { status: 'Tailoring your resume…', sub: 'Highlighting the most relevant experience', pct: 65, delay: 800 },
+    { status: 'Writing cover letter…', sub: `Crafting a compelling narrative for ${j.company}`, pct: 80, delay: 700 },
+    { status: 'Generating interview prep…', sub: 'Building Q&As based on their known process', pct: 90, delay: 600 },
+    { status: 'Finalizing negotiation guide…', sub: 'Analyzing TC data for this level and market', pct: 100, delay: 500 },
+  ];
+
+  let i = 0;
+  function nextStep() {
+    if (i >= steps.length) {
+      setTimeout(() => renderResults(j, resume), 300);
+      return;
+    }
+    const s = steps[i++];
+    document.getElementById('gen-status').textContent = s.status;
+    document.getElementById('gen-sub').textContent = s.sub;
+    animateBar(s.pct, s.delay * 0.8, () => setTimeout(nextStep, s.delay * 0.2));
+  }
+  nextStep();
+}
+
+function renderResults(j, resume) {
+  // Extract a few skills from the resume for personalization
+  const skillsInResume = (resume.match(/\b(PySpark|Spark|Databricks|Delta Lake|Azure|AWS|GCP|Python|SQL|dbt|Airflow|Kafka|Flink|Snowflake|BigQuery|Redshift|Java|Scala|Go|Rust|React|Node|TypeScript|Kubernetes|Docker|Terraform|C\+\+|VLSI|Embedded|FPGA|ML|TensorFlow|PyTorch|LLM|OpenAI|Kubernetes|Ansible|Jenkins|GitHub Actions|Power BI|Tableau|Looker|Fivetran|Segment|Amplitude|Jira|Agile|Scrum|SAFe)\b/gi) || []);
+  const matchedSkills = [...new Set(skillsInResume.map(s => s))].slice(0, 5);
+  const skillStr = matchedSkills.length ? matchedSkills.join(', ') : j.skills.slice(0,3).join(', ');
+  const reqSkillStr = j.skills.slice(0,4).join(', ');
+
+  // Resume
+  const resumeText = `TAILORED RESUME HIGHLIGHTS — ${j.company.toUpperCase()}
+Role: ${j.title} · ${j.location} · ${j.level}
+
+SUMMARY
+Results-driven engineer with proven experience in ${skillStr}. Targeting ${j.title} at ${j.company} to ${j.stage === 'Series B' || j.stage === 'Series C' ? 'scale a high-growth platform' : 'drive enterprise-grade data solutions'}.
+
+KEY ACHIEVEMENTS (reordered & amplified for this role)
+▸ [Pull your #1 most relevant bullet — quantified impact first]
+▸ [Technical depth bullet matching ${j.skills[0]} or ${j.skills[1] || j.skills[0]}]
+▸ [Cross-functional or leadership signal — ${j.company} values this at ${j.level}]
+▸ [Scale or performance improvement with numbers]
+
+SKILLS TO LEAD WITH FOR ${j.company.toUpperCase()}
+Required match:  ${reqSkillStr}
+Your coverage:   ${skillStr}
+
+RECOMMENDED ADDITIONS TO YOUR RESUME
+• Quantify every bullet: "reduced pipeline latency by X%" beats "improved performance"
+• Mirror ${j.company}'s job description language — ATS scans for exact phrases
+• Add a "Selected Projects" section if you have any ${j.skills[0]} work to showcase`;
+
+  // Cover letter
+  const coverText = `Dear ${j.company} Hiring Team,
+
+I'm writing to express my strong interest in the ${j.title} position at ${j.company}. With hands-on experience in ${skillStr} and a track record of [your key accomplishment], I'm confident I can contribute meaningfully to your team.
+
+What draws me specifically to ${j.company}:
+• [Research their recent product launch, funding news, or open-source work]
+• Your ${j.stage} stage means real ownership and visible impact — exactly what I'm looking for
+• ${j.intel ? j.intel.split('.')[0] + '.' : 'Your engineering culture and technical challenges align with my career goals.'}
+
+In my recent role, I [describe your most relevant project in 2 sentences matching ${j.skills[0]}]. This resulted in [quantified outcome].
+
+I'd welcome the opportunity to discuss how my background in ${skillStr} aligns with what you're building.
+
+Warm regards,
+[Your Name]
+[LinkedIn] · [GitHub] · [Phone]`;
+
+  // Interview prep
+  const prepText = `INTERVIEW PREP — ${j.company.toUpperCase()} · ${j.title}
+${j.process ? 'Known process: ' + j.process : ''}
+
+LIKELY TECHNICAL QUESTIONS
+
+Q1: Walk me through how you'd design a ${j.skills[0]} pipeline from scratch.
+→ Cover: ingestion → transformation → serving. Mention trade-offs (batch vs. streaming, cost vs. latency). Reference your actual projects.
+
+Q2: How do you handle data quality at scale?
+→ Talk schema validation, anomaly detection, quarantine patterns, alerting. If you've used Great Expectations, dbt tests, or similar — name them.
+
+Q3: Describe a time a pipeline failed in production. How did you debug it?
+→ Prepare a STAR story: root cause, how you found it, what you changed, how you prevented recurrence.
+
+Q4: How would you optimize a slow ${j.skills[1] || j.skills[0]} query?
+→ EXPLAIN ANALYZE, indexing, partitioning, caching — know which apply to ${j.skills[1] || j.skills[0]}.
+
+Q5: ${j.company}-specific question about their stack or product.
+→ Research: What data infrastructure does ${j.company} likely use at ${j.stage}? What are their engineering blog posts about?
+
+BEHAVIORAL (almost certain)
+• "Tell me about a time you influenced a technical decision without authority"
+• "Describe your biggest failure and what you learned"
+• "How do you prioritize when everything is urgent?"
+
+QUESTIONS TO ASK THEM
+• "What does the data infrastructure look like today, and where do you want it in 18 months?"
+• "What's the biggest unsolved problem on the data team right now?"
+• "How does the data team collaborate with product and ML?"`;
+
+  // Negotiation
+  const negoText = `NEGOTIATION GUIDE — ${j.company.toUpperCase()} · ${j.title} · ${j.level}
+${j.tc ? 'Posted TC range: ' + j.tc : ''}
+
+ANCHORING STRATEGY
+1. Never name a number first — "I'm flexible, what's the range for this level?"
+2. If pressed: anchor 15–20% above your target
+3. After an offer: "I'm excited about this role. Can you do [X]?" — always counter once
+
+TC COMPONENTS TO NEGOTIATE
+□ Base salary (easiest to move)
+□ Sign-on bonus (one-time, often flexible)
+□ Equity (RSUs — negotiate grant size AND cliff/vesting)
+□ Performance review timing (ask for 6-month instead of 12)
+□ Title level (affects future comps everywhere)
+
+LEVERAGE PHRASES
+• "I have another offer in the [same range / slightly higher] — is there flexibility?"
+• "I'm very excited about ${j.company} specifically. If you can get to [X], I'm ready to sign."
+• "I'd love to make this work. What's the max you can do on [base / equity]?"
+
+MARKET DATA (use to calibrate)
+• Check levels.fyi for ${j.title} at ${j.stage} companies
+• Glassdoor, Blind, and Comprehensive.io for ${j.company}-specific data
+• For ${j.location}: ${j.location.includes('Remote') ? 'Remote typically tracks HQ market — negotiate as if on-site' : 'Factor in local cost of living and tax rates'}
+
+WALK-AWAY PREP
+Know your number before the call. Write it down. Don't negotiate while surprised.`;
+
+  // Populate all panels
+  document.getElementById('result-resume-content').textContent = resumeText;
+  document.getElementById('result-cover-content').textContent = coverText;
+  document.getElementById('result-prep-content').textContent = prepText;
+  document.getElementById('result-nego-content').textContent = negoText;
+
+  ['resume','cover','prep','nego'].forEach(t => {
+    const el = document.getElementById('res-company-' + t);
+    if (el) el.textContent = j.company;
+  });
+
+  showAIStep(3);
+}
+
+// Close AI modal on overlay click
+document.getElementById('ai-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAIModal();
+});
+</script>
+</body>
+</html>
