@@ -124,6 +124,13 @@ NON_TECH_TITLE_KEYWORDS = [
     "mental health", "support worker", "supported living", "care assistant", "care worker",
     "social worker", "youth worker", "healthcare assistant", "home care", "domiciliary care",
     "residential care", "support staff", "care coordinator", "case worker", "caregiver",
+    "manufacturing engineer", "manufacturing technician", "cad designer", "cad drafter", "drafter",
+    "environmental permitting", "environmental specialist", "environmental engineer",
+    "environmental consultant", "ferc generalist", "managing consultant",
+    "mechanical engineer", "civil engineer", "structural engineer", "chemical engineer",
+    "industrial engineer", "hvac", "plumbing", "welder", "welding", "machinist",
+    "field technician", "maintenance technician", "quality inspector", "production supervisor",
+    "plant manager", "process safety",
 ]
 
 def is_technical_role(title: str) -> bool:
@@ -802,7 +809,7 @@ def fetch_adzuna() -> list:
                     "id":           job_id("adzuna", company, j.get("id", title)),
                     "source":       "adzuna",
                     "emp_type":     "c2c" if is_c2c else "fulltime",
-                    "cat":          cat,
+                    "cat":          classify_cat(title, desc),
                     "company":      company,
                     "company_slug": re.sub(r"[^a-z0-9]","-",company.lower()),
                     "color":        color_for(company),
