@@ -515,6 +515,145 @@ ADZUNA_SEARCHES = [
     ("data analyst sql power bi",       "data"),
 ]
 
+# ── Source: Wynn Resorts (SmartRecruiters) ─────────────────────────────────
+# SmartRecruiters tags each posting with a structured `function.id` — filter
+# on that instead of title keywords, since most of this board is hospitality.
+WYNN_TECH_FUNCTIONS = {"information_technology", "engineering"}
+
+def fetch_wynn() -> list:
+    records = []
+    now = datetime.now(timezone.utc)
+    try:
+        req = urllib.request.Request(
+            "https://api.smartrecruiters.com/v1/companies/WynnResorts/postings?limit=200",
+            headers={"User-Agent": "Cadre/1.0"},
+        )
+        with urllib.request.urlopen(req, timeout=15) as r:
+            data = json.loads(r.read())
+    except Exception as e:
+        print(f"  Wynn error: {e}")
+        return []
+
+    for j in data.get("content", []):
+        func = (j.get("function") or {}).get("id", "")
+        if func not in WYNN_TECH_FUNCTIONS:
+            continue
+        title = (j.get("name") or "").strip()
+        if not title or not is_technical_role(title):
+            continue
+        loc_obj  = j.get("location") or {}
+        loc      = loc_obj.get("fullLocation") or "Las Vegas, NV"
+        remote   = bool(loc_obj.get("remote")) or "remote" in title.lower()
+        emp_id   = (j.get("typeOfEmployment") or {}).get("id", "")
+        desc     = title  # SmartRecruiters postings list doesn't include full description
+        try:
+            posted = datetime.fromisoformat(j["releasedDate"].replace("Z", "+00:00"))
+        except Exception:
+            posted = now
+
+        records.append({
+            "id":           job_id("smartrecruiters", "wynn-resorts", j.get("id", title)),
+            "source":       "smartrecruiters",
+            "emp_type":     "contract" if emp_id == "part-time" else "fulltime",
+            "cat":          classify_cat(title, desc),
+            "company":      "Wynn Resorts",
+            "company_slug": "wynn-resorts",
+            "color":        color_for("Wynn Resorts"),
+            "letter":       letter_for("Wynn Resorts"),
+            "stage":        "Career Portal",
+            "title":        title,
+            "location":     loc,
+            "is_remote":    remote,
+            "posted_at":    posted.isoformat(),
+            "posted_label": posted_label(posted),
+            "is_new":       (now - posted).days < 3,
+            "tc":           "Competitive",
+            "level":        "Senior" if is_senior(title) else "Mid-Senior",
+            "yoe":          "5+ years" if is_senior(title) else "3+ years",
+            "skills":       extract_skills(title),
+            "visa":         "",
+            "description":  desc,
+            "apply_url":    f"https://jobs.smartrecruiters.com/WynnResorts/{j.get('id','')}",
+            "fetched_at":   now.isoformat(),
+        })
+
+    print(f"  Wynn Resorts: {len(records)} jobs")
+    return records
+
+
+# ── Source: MGM Resorts (Workday) ───────────────────────────────────────────
+# Workday's CXS API supports server-side facet filtering — request only the
+# "Information Technology" jobFamilyGroup instead of pulling all ~2,000+ jobs
+# (which are overwhelmingly hospitality/casino roles) and filtering client-side.
+MGM_IT_FACET_ID = "c986a940482310a8b41cef9aff103941"
+
+def fetch_mgm() -> list:
+    records = []
+    now = datetime.now(timezone.utc)
+    data = None
+    # Workday's edge WAF occasionally rejects requests with no apparent pattern
+    # (observed while testing) — retry a few times before giving up for this run.
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(
+                "https://mgmresorts.wd5.myworkdayjobs.com/wday/cxs/mgmresorts/MGMCareers/jobs",
+                data=json.dumps({
+                    "appliedFacets": {"jobFamilyGroup": [MGM_IT_FACET_ID]},
+                    "limit": 100, "offset": 0, "searchText": "",
+                }).encode(),
+                headers={"User-Agent": "Cadre/1.0", "Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=15) as r:
+                data = json.loads(r.read())
+            break
+        except Exception as e:
+            if attempt == 2:
+                print(f"  MGM error after 3 attempts: {e}")
+                return []
+            time.sleep(3 * (attempt + 1))
+
+    for j in data.get("jobPostings", []):
+        title = (j.get("title") or "").strip()
+        if not title or not is_technical_role(title):
+            continue
+        loc = j.get("locationsText") or "Las Vegas, NV"
+        now_local = now
+        # Workday gives relative labels ("Posted Today", "Posted 3 Days Ago") not timestamps
+        label = j.get("postedOn") or "Posted Today"
+        m = re.search(r"(\d+)\s+Day", label)
+        posted = now_local - timedelta(days=int(m.group(1))) if m else now_local
+
+        records.append({
+            "id":           job_id("workday", "mgm-resorts", j.get("externalPath", title)),
+            "source":       "workday",
+            "emp_type":     "fulltime",
+            "cat":          classify_cat(title, title),
+            "company":      "MGM Resorts",
+            "company_slug": "mgm-resorts",
+            "color":        color_for("MGM Resorts"),
+            "letter":       letter_for("MGM Resorts"),
+            "stage":        "Career Portal",
+            "title":        title,
+            "location":     loc,
+            "is_remote":    "remote" in loc.lower() or "remote" in title.lower(),
+            "posted_at":    posted.isoformat(),
+            "posted_label": posted_label(posted),
+            "is_new":       (now - posted).days < 3,
+            "tc":           "Competitive",
+            "level":        "Senior" if is_senior(title) else "Mid-Senior",
+            "yoe":          "5+ years" if is_senior(title) else "3+ years",
+            "skills":       extract_skills(title),
+            "visa":         "",
+            "description":  title,
+            "apply_url":    f"https://mgmresorts.wd5.myworkdayjobs.com/MGMCareers{j.get('externalPath','')}",
+            "fetched_at":   now.isoformat(),
+        })
+
+    print(f"  MGM Resorts: {len(records)} jobs")
+    return records
+
+
 def fetch_adzuna() -> list:
     app_id  = os.environ.get("ADZUNA_APP_ID", "")
     api_key = os.environ.get("ADZUNA_API_KEY", "")
@@ -599,6 +738,11 @@ def main():
     all_records.extend(fetch_greenhouse())
     all_records.extend(fetch_lever())
     all_records.extend(fetch_ashby())
+
+    # Enterprise career portals on other ATS platforms — filtered to IT/engineering
+    # roles via each platform's structured category field, not just title keywords
+    all_records.extend(fetch_wynn())
+    all_records.extend(fetch_mgm())
 
     # Staffing firms via their own portals (Greenhouse + Lever)
     print("  Fetching staffing firm portals...")
