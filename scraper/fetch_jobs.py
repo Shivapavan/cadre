@@ -8,7 +8,7 @@ Sources (all public APIs, no auth, no scraping, ToS-compliant):
 Writes to Supabase (upsert — no duplicates, no deleted jobs accumulating)
 """
 
-import json, os, re, sys, hashlib, time, urllib.request, urllib.error
+import json, os, re, sys, hashlib, time, urllib.request, urllib.error, urllib.parse
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from companies import (
@@ -176,7 +176,7 @@ def delete_old_jobs():
     """Remove jobs fetched more than 45 days ago."""
     cutoff = (datetime.now(timezone.utc) - timedelta(days=45)).isoformat()
     req = urllib.request.Request(
-        f"{SUPABASE_URL}/rest/v1/jobs?fetched_at=lt.{cutoff}",
+        f"{SUPABASE_URL}/rest/v1/jobs?fetched_at=lt.{urllib.parse.quote(cutoff, safe='')}",
         headers=HEADERS_SB,
         method="DELETE",
     )
