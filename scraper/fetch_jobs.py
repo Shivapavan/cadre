@@ -473,27 +473,35 @@ ADZUNA_SEARCHES = [
     ("full stack developer react node", "backend"),
     ("data analyst sql power bi",       "data"),
 
-    # C2C / corp-to-corp specific — Dice's own RSS feed is dead (shut down
-    # their public API in 2017, robots.txt now disallows /rss/ entirely), so
-    # these queries are the primary C2C source going forward.
-    ("data engineer corp to corp",           "data"),
-    ("java developer corp to corp c2c",      "backend"),
-    ("python developer c2c contract",        "backend"),
-    (".net developer corp to corp",          "backend"),
-    ("devops engineer c2c contract",         "devops"),
-    ("cloud engineer corp to corp",          "devops"),
-    ("network engineer c2c contract",        "devops"),
-    ("react developer corp to corp",         "frontend"),
-    ("full stack developer c2c contract",    "backend"),
-    ("qa automation engineer c2c",           "backend"),
-    ("business analyst c2c contract",        "pm"),
-    ("sap consultant corp to corp",          "data"),
-    ("salesforce developer c2c contract",    "backend"),
-    ("android developer corp to corp",       "mobile"),
-    ("ios developer corp to corp",           "mobile"),
-    ("machine learning engineer c2c",        "ml"),
-    ("security engineer corp to corp",       "security"),
-    ("vlsi engineer c2c contract",           "embedded"),
+]
+
+# C2C / corp-to-corp — Dice's own RSS feed is dead (their public API shut down
+# in 2017, robots.txt now disallows /rss/ entirely), so this is the primary
+# C2C source. Adzuna's `what=` search is an AND match across all words, so
+# stuffing "c2c"/"corp to corp" into the query text returns near-zero results
+# (real postings rarely contain those exact phrases) — instead use plain role
+# names with Adzuna's dedicated `contract=1` filter param, which reliably
+# surfaces IT-staffing-firm listings (verified: "java developer" + contract=1
+# → 523 results from clear body-shops like "Two95 International", "Pyramid Inc").
+ADZUNA_C2C_SEARCHES = [
+    ("data engineer",           "data"),
+    ("java developer",          "backend"),
+    ("python developer",        "backend"),
+    (".net developer",          "backend"),
+    ("devops engineer",         "devops"),
+    ("cloud engineer",          "devops"),
+    ("network engineer",        "devops"),
+    ("react developer",         "frontend"),
+    ("full stack developer",    "backend"),
+    ("qa automation engineer",  "backend"),
+    ("business analyst",        "pm"),
+    ("sap consultant",          "data"),
+    ("salesforce developer",    "backend"),
+    ("android developer",       "mobile"),
+    ("ios developer",           "mobile"),
+    ("machine learning engineer","ml"),
+    ("security engineer",       "security"),
+    ("vlsi engineer",           "embedded"),
 ]
 
 # ── Source: Wynn Resorts (SmartRecruiters) ─────────────────────────────────
@@ -738,66 +746,74 @@ def fetch_adzuna() -> list:
     records = []
     now = datetime.now(timezone.utc)
 
-    for query, cat in ADZUNA_SEARCHES:
-        encoded = urllib.parse.quote(query)
-        url = (
-            f"https://api.adzuna.com/v1/api/jobs/us/search/1"
-            f"?app_id={app_id}&app_key={api_key}"
-            f"&results_per_page=20&what={encoded}"
-            f"&content-type=application/json"
-            f"&sort_by=date"
-        )
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Cadre/1.0"})
-            with urllib.request.urlopen(req, timeout=15) as r:
-                data = json.loads(r.read())
-        except Exception as e:
-            print(f"  Adzuna error [{query}]: {e}")
-            continue
-
-        for j in data.get("results", []):
-            title   = (j.get("title") or "").strip()
-            company = (j.get("company") or {}).get("display_name", "").strip() or "Employer"
-            loc     = (j.get("location") or {}).get("display_name", "").strip() or "US"
-            desc    = strip_html(j.get("description") or "")[:400]
-            skills  = extract_skills(title + " " + desc)
-            remote  = "remote" in loc.lower() or "remote" in title.lower()
-            is_c2c  = any(x in (title + desc).lower() for x in ["c2c","corp to corp","1099","contract"])
-
+    def run_searches(searches, force_c2c=False):
+        batch = []
+        for query, cat in searches:
+            encoded = urllib.parse.quote(query)
+            url = (
+                f"https://api.adzuna.com/v1/api/jobs/us/search/1"
+                f"?app_id={app_id}&app_key={api_key}"
+                f"&results_per_page=20&what={encoded}"
+                f"&content-type=application/json"
+                f"&sort_by=date"
+            )
+            if force_c2c:
+                url += "&contract=1"
             try:
-                created = datetime.fromisoformat(j["created"].replace("Z","+00:00"))
-            except Exception:
-                created = now
+                req = urllib.request.Request(url, headers={"User-Agent": "Cadre/1.0"})
+                with urllib.request.urlopen(req, timeout=15) as r:
+                    data = json.loads(r.read())
+            except Exception as e:
+                print(f"  Adzuna error [{query}]: {e}")
+                continue
 
-            records.append({
-                "id":           job_id("adzuna", company, j.get("id", title)),
-                "source":       "adzuna",
-                "emp_type":     "c2c" if is_c2c else "fulltime",
-                "cat":          cat,
-                "company":      company,
-                "company_slug": re.sub(r"[^a-z0-9]","-",company.lower()),
-                "color":        color_for(company),
-                "letter":       letter_for(company),
-                "stage":        "Adzuna · Live Market",
-                "title":        title,
-                "location":     loc,
-                "is_remote":    remote,
-                "posted_at":    created.isoformat(),
-                "posted_label": posted_label(created),
-                "is_new":       (now - created).days < 3,
-                "tc":           "Competitive",
-                "level":        "Senior" if is_senior(title) else "Mid-Senior",
-                "yoe":          "5+ years" if is_senior(title) else "3+ years",
-                "skills":       skills,
-                "visa":         "H1B OK · H4 EAD OK" if is_c2c else "",
-                "description":  desc,
-                "apply_url":    j.get("redirect_url", ""),
-                "fetched_at":   now.isoformat(),
-            })
+            for j in data.get("results", []):
+                title   = (j.get("title") or "").strip()
+                company = (j.get("company") or {}).get("display_name", "").strip() or "Employer"
+                loc     = (j.get("location") or {}).get("display_name", "").strip() or "US"
+                desc    = strip_html(j.get("description") or "")[:400]
+                skills  = extract_skills(title + " " + desc)
+                remote  = "remote" in loc.lower() or "remote" in title.lower()
+                is_c2c  = force_c2c or any(x in (title + desc).lower() for x in ["c2c", "corp to corp", "1099"])
 
-        time.sleep(0.2)  # Adzuna rate limit
+                try:
+                    created = datetime.fromisoformat(j["created"].replace("Z","+00:00"))
+                except Exception:
+                    created = now
 
-    print(f"  Adzuna: {len(records)} jobs")
+                batch.append({
+                    "id":           job_id("adzuna", company, j.get("id", title)),
+                    "source":       "adzuna",
+                    "emp_type":     "c2c" if is_c2c else "fulltime",
+                    "cat":          cat,
+                    "company":      company,
+                    "company_slug": re.sub(r"[^a-z0-9]","-",company.lower()),
+                    "color":        color_for(company),
+                    "letter":       letter_for(company),
+                    "stage":        "Adzuna · Live Market",
+                    "title":        title,
+                    "location":     loc,
+                    "is_remote":    remote,
+                    "posted_at":    created.isoformat(),
+                    "posted_label": posted_label(created),
+                    "is_new":       (now - created).days < 3,
+                    "tc":           "Competitive",
+                    "level":        "Senior" if is_senior(title) else "Mid-Senior",
+                    "yoe":          "5+ years" if is_senior(title) else "3+ years",
+                    "skills":       skills,
+                    "visa":         "H1B OK · H4 EAD OK" if is_c2c else "",
+                    "description":  desc,
+                    "apply_url":    j.get("redirect_url", ""),
+                    "fetched_at":   now.isoformat(),
+                })
+
+            time.sleep(0.2)  # Adzuna rate limit
+        return batch
+
+    records.extend(run_searches(ADZUNA_SEARCHES))
+    records.extend(run_searches(ADZUNA_C2C_SEARCHES, force_c2c=True))
+
+    print(f"  Adzuna: {len(records)} jobs ({sum(1 for r in records if r['emp_type']=='c2c')} c2c)")
     return records
 
 
