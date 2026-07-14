@@ -130,6 +130,56 @@ def is_technical_role(title: str) -> bool:
     t = title.lower()
     return not any(kw in t for kw in NON_TECH_TITLE_KEYWORDS)
 
+# ── US-only location filter ─────────────────────────────────────────────────
+NON_US_LOCATION_HINTS = [
+    "india", "bengaluru", "bangalore", "hyderabad", "pune", "mumbai", "chennai",
+    "gurgaon", "gurugram", "noida", "delhi", "kolkata",
+    "canada", "toronto", "vancouver", "montreal", "ontario", "ottawa",
+    "united kingdom", " uk", "uk,", "london", "dublin", "ireland", "manchester", "belfast",
+    "germany", "berlin", "munich", "frankfurt",
+    "france", "paris",
+    "spain", "madrid", "barcelona",
+    "italy", "milan", "rome",
+    "netherlands", "amsterdam",
+    "poland", "warsaw", "krakow",
+    "portugal", "lisbon",
+    "switzerland", "zurich", "geneva",
+    "sweden", "stockholm", "norway", "oslo", "denmark", "copenhagen", "finland", "helsinki",
+    "belgium", "brussels", "austria", "vienna", "bulgaria",
+    "japan", "tokyo", "china", "shanghai", "beijing", "hong kong", "taiwan", "taipei",
+    "singapore", "malaysia", "indonesia", "jakarta", "thailand", "bangkok", "vietnam",
+    "philippines", "manila", "south korea", "seoul",
+    "australia", "sydney", "melbourne", "brisbane", "new zealand", "auckland",
+    "brazil", "sao paulo", "são paulo", "argentina", "buenos aires", "mexico", "bogota", "colombia",
+    "south africa", "johannesburg", "cape town", "nigeria", "egypt", "israel", "tel aviv",
+    "uae", "dubai", "saudi", "turkey", "istanbul", "russia", "ukraine",
+    "amer,", "emea", "apac", "remote - india", "remote - uk", "remote - canada",
+]
+
+US_STATE_ABBREVS = {
+    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA",
+    "ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK",
+    "OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC",
+}
+
+def is_us_location(loc: str) -> bool:
+    if not loc or loc.strip().upper() in ("N/A", "TBD", ""):
+        return True  # no location info — don't drop the job over it
+    if re.match(r"^\d+\s+Locations?$", loc.strip(), re.I):
+        return True  # multi-location placeholder text — ambiguous, default include
+    lower = loc.lower()
+    if any(hint in lower for hint in NON_US_LOCATION_HINTS):
+        return False
+    if "united states" in lower or "usa" in lower or "u.s." in lower or "d.c." in lower:
+        return True
+    if re.search(r"\b(" + "|".join(US_STATE_ABBREVS) + r")\b", loc):
+        return True
+    if re.search(r"\bUS\b", loc):
+        return True
+    if "remote" in lower:
+        return True  # bare "Remote" with no country hint — default include
+    return False
+
 # For enterprise boards with no usable category facet (Disney) — an allowlist
 # is more reliable than the exclude-list above, since most of the board is
 # non-technical and a blocklist alone lets too much through.
@@ -909,6 +959,10 @@ def main():
     before = len(all_records)
     all_records = [r for r in all_records if is_technical_role(r["title"])]
     print(f"  Filtered out {before - len(all_records)} non-technical roles")
+
+    before = len(all_records)
+    all_records = [r for r in all_records if is_us_location(r["location"])]
+    print(f"  Filtered out {before - len(all_records)} non-US-location roles")
 
     print(f"\nTotal records collected: {len(all_records)}")
     print("Upserting to Supabase...")
