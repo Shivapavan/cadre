@@ -107,6 +107,7 @@ def classify_cat(title: str, text: str) -> str:
 NON_TECH_TITLE_KEYWORDS = [
     "recruiter", "recruiting", "talent acquisition", "talent partner",
     "hr business partner", "human resources", "people operations", "people partner",
+    "total rewards", "compensation", "benefits analyst", "benefits manager", "payroll manager",
     "sales", "account executive", "account manager", "business development",
     "gtm", "go-to-market", "channel partner", "partnerships manager",
     "customer success", "customer support", "customer service", "support specialist",
