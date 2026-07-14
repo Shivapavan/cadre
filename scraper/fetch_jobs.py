@@ -591,21 +591,26 @@ def fetch_mgm() -> list:
     records = []
     now = datetime.now(timezone.utc)
     data = None
-    # Workday's edge WAF occasionally rejects requests with no apparent pattern
-    # (observed while testing) — retry a few times before giving up for this run.
+    # Workday's edge WAF blocks Python's urllib client outright (verified: fails
+    # consistently both locally and in GitHub Actions) but allows curl — shell out
+    # instead of using urllib for this one source.
+    import subprocess
+    payload = json.dumps({
+        "appliedFacets": {"jobFamilyGroup": [MGM_IT_FACET_ID]},
+        "limit": 100, "offset": 0, "searchText": "",
+    })
     for attempt in range(3):
         try:
-            req = urllib.request.Request(
-                "https://mgmresorts.wd5.myworkdayjobs.com/wday/cxs/mgmresorts/MGMCareers/jobs",
-                data=json.dumps({
-                    "appliedFacets": {"jobFamilyGroup": [MGM_IT_FACET_ID]},
-                    "limit": 100, "offset": 0, "searchText": "",
-                }).encode(),
-                headers={"User-Agent": "Cadre/1.0", "Content-Type": "application/json"},
-                method="POST",
+            result = subprocess.run(
+                ["curl", "-s", "--max-time", "15", "-X", "POST",
+                 "https://mgmresorts.wd5.myworkdayjobs.com/wday/cxs/mgmresorts/MGMCareers/jobs",
+                 "-H", "Content-Type: application/json", "-d", payload],
+                capture_output=True, text=True, timeout=20,
             )
-            with urllib.request.urlopen(req, timeout=15) as r:
-                data = json.loads(r.read())
+            parsed = json.loads(result.stdout)
+            if "jobPostings" not in parsed:
+                raise ValueError(parsed.get("errorCode", "unexpected response"))
+            data = parsed
             break
         except Exception as e:
             if attempt == 2:
