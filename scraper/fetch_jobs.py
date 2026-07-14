@@ -162,6 +162,18 @@ US_STATE_ABBREVS = {
     "OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC",
 }
 
+# Fallback for "Neighborhood, Major City" formats with no state/county/country text
+# (seen from smaller Adzuna employers, e.g. "Tenderloin, San Francisco")
+MAJOR_US_CITIES = {
+    "san francisco","new york","los angeles","chicago","houston","phoenix","philadelphia",
+    "san antonio","san diego","dallas","san jose","austin","jacksonville","fort worth",
+    "columbus","charlotte","indianapolis","seattle","denver","boston","nashville",
+    "detroit","portland","memphis","oklahoma city","las vegas","louisville","baltimore",
+    "milwaukee","albuquerque","tucson","fresno","sacramento","kansas city","atlanta",
+    "miami","raleigh","omaha","minneapolis","tampa","orlando","cleveland","new orleans",
+    "honolulu","pittsburgh","cincinnati","st louis","salt lake city","san jose",
+}
+
 def is_us_location(loc: str) -> bool:
     if not loc or loc.strip().upper() in ("N/A", "TBD", ""):
         return True  # no location info — don't drop the job over it
@@ -175,6 +187,11 @@ def is_us_location(loc: str) -> bool:
     if re.search(r"\b(" + "|".join(US_STATE_ABBREVS) + r")\b", loc):
         return True
     if re.search(r"\bUS\b", loc):
+        return True
+    if "county" in lower:
+        return True  # "X County" is distinctly American admin terminology — small
+                      # employers on Adzuna often give "City, County" with no state code
+    if any(city in lower for city in MAJOR_US_CITIES):
         return True
     if "remote" in lower:
         return True  # bare "Remote" with no country hint — default include
