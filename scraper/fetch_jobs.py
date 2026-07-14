@@ -132,7 +132,7 @@ NON_TECH_TITLE_KEYWORDS = [
     "mechanical engineer", "civil engineer", "structural engineer", "chemical engineer",
     "industrial engineer", "hvac", "plumbing", "welder", "welding", "machinist",
     "field technician", "maintenance technician", "quality inspector", "production supervisor",
-    "plant manager", "process safety",
+    "plant manager", "process safety", "operating engineer", "critical environments",
 ]
 
 def is_technical_role(title: str) -> bool:
