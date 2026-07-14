@@ -8,7 +8,7 @@ Sources (all public APIs, no auth, no scraping, ToS-compliant):
 Writes to Supabase (upsert — no duplicates, no deleted jobs accumulating)
 """
 
-import json, os, re, hashlib, time, urllib.request, urllib.error
+import json, os, re, sys, hashlib, time, urllib.request, urllib.error
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from companies import (
@@ -104,6 +104,29 @@ def classify_cat(title: str, text: str) -> str:
         return "pm"
     return "backend"   # default
 
+NON_TECH_TITLE_KEYWORDS = [
+    "recruiter", "recruiting", "talent acquisition", "talent partner",
+    "hr business partner", "human resources", "people operations", "people partner",
+    "sales", "account executive", "account manager", "business development",
+    "gtm", "go-to-market", "channel partner", "partnerships manager",
+    "customer success", "customer support", "customer service", "support specialist",
+    "marketing", "content writer", "copywriter", "social media", "community manager",
+    "brand ", "seo specialist", "growth marketer",
+    "legal", "counsel", "paralegal", "compliance officer", "compliance analyst", "compliance manager",
+    "finance", "accounting", "accountant", "controller", "payroll", "bookkeeper", "treasury",
+    "executive assistant", "office manager", "administrative assistant", "receptionist", "facilities",
+    "procurement", "supply chain", "logistics coordinator", "warehouse", "retail", "store associate",
+    "event coordinator", "event manager", "hospitality", "chef", "esthetician", "stylist",
+    "fraud", "disputes", "chargeback",
+    "curriculum", "instructor", "teacher", "tutor",
+    "physician", "nurse", "clinical", "chaplain", "therapist", "pharmacist",
+    "real estate agent", "property manager",
+]
+
+def is_technical_role(title: str) -> bool:
+    t = title.lower()
+    return not any(kw in t for kw in NON_TECH_TITLE_KEYWORDS)
+
 def is_senior(title: str) -> bool:
     t = title.lower()
     return any(x in t for x in ["senior","staff","principal","lead","architect","manager","director","head of","vp ","vice president","distinguished"])
@@ -121,12 +144,18 @@ def posted_label(dt: datetime) -> str:
 
 # ── Supabase upsert ───────────────────────────────────────────────────────
 
-def upsert_jobs(records: list):
+def upsert_jobs(records: list) -> bool:
     if not records:
-        return
+        return True
+    # Dedupe by id — Postgres rejects an upsert batch outright if the same
+    # conflict key appears twice in one command ("cannot affect row a second time").
+    deduped = list({r["id"]: r for r in records}.values())
+    if len(deduped) != len(records):
+        print(f"  Deduped {len(records) - len(deduped)} duplicate id(s) before upsert")
+    ok = True
     # Supabase REST accepts up to 500 rows per call
-    for i in range(0, len(records), 400):
-        chunk = records[i:i+400]
+    for i in range(0, len(deduped), 400):
+        chunk = deduped[i:i+400]
         payload = json.dumps(chunk).encode()
         req = urllib.request.Request(
             f"{SUPABASE_URL}/rest/v1/jobs",
@@ -140,6 +169,8 @@ def upsert_jobs(records: list):
         except urllib.error.HTTPError as e:
             body = e.read().decode()
             print(f"  Supabase upsert error: {e.code} {body[:300]}")
+            ok = False
+    return ok
 
 def delete_old_jobs():
     """Remove jobs fetched more than 45 days ago."""
@@ -616,10 +647,17 @@ def main():
     # Adzuna live market jobs (optional — skipped if env vars not set)
     all_records.extend(fetch_adzuna())
 
+    before = len(all_records)
+    all_records = [r for r in all_records if is_technical_role(r["title"])]
+    print(f"  Filtered out {before - len(all_records)} non-technical roles")
+
     print(f"\nTotal records collected: {len(all_records)}")
     print("Upserting to Supabase...")
-    upsert_jobs(all_records)
+    ok = upsert_jobs(all_records)
     delete_old_jobs()
+    if not ok:
+        print(f"FAILED. Upsert error(s) above — jobs may not have been written.")
+        sys.exit(1)
     print(f"Done. {len(all_records)} jobs in DB.")
 
 if __name__ == "__main__":
