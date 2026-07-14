@@ -120,6 +120,7 @@ NON_TECH_TITLE_KEYWORDS = [
     "event coordinator", "event manager", "hospitality", "chef", "esthetician", "stylist",
     "fraud", "disputes", "chargeback",
     "curriculum", "instructor", "teacher", "tutor",
+    "internship", "co-op", "coop program", "new grad", "new graduate",
     "physician", "nurse", "clinical", "chaplain", "therapist", "pharmacist",
     "real estate agent", "property manager",
     "mental health", "support worker", "supported living", "care assistant", "care worker",
@@ -136,7 +137,13 @@ NON_TECH_TITLE_KEYWORDS = [
 
 def is_technical_role(title: str) -> bool:
     t = title.lower()
-    return not any(kw in t for kw in NON_TECH_TITLE_KEYWORDS)
+    if any(kw in t for kw in NON_TECH_TITLE_KEYWORDS):
+        return False
+    # word-boundary check — "intern" as a substring would false-match
+    # "internal"/"international"/"internet"
+    if re.search(r"\bintern\b", t):
+        return False
+    return True
 
 # ── US-only location filter ─────────────────────────────────────────────────
 NON_US_LOCATION_HINTS = [
@@ -209,15 +216,18 @@ def is_us_location(loc: str) -> bool:
 # is more reliable than the exclude-list above, since most of the board is
 # non-technical and a blocklist alone lets too much through.
 TECH_TITLE_ALLOWLIST = [
-    "software engineer", "software developer", "engineer", "developer", "programmer",
-    "architect", "devops", "sre", "site reliability", "data engineer", "data scientist",
-    "machine learning", "ml engineer", "ai engineer", "cloud engineer", "backend", "frontend",
-    "full stack", "fullstack", "qa engineer", "test engineer", "sdet", "security engineer",
-    "cybersecurity", "infosec", "network engineer", "systems engineer", "platform engineer",
-    "database administrator", "dba", "technical director", "technical program",
-    "solutions engineer", "infrastructure engineer", "site reliability engineer",
+    "software engineer", "software developer", "software architect", "programmer",
+    "devops", "sre", "site reliability", "data engineer", "data scientist",
+    "machine learning", "ml engineer", "ai engineer", "cloud engineer", "cloud architect",
+    "backend engineer", "backend developer", "frontend engineer", "frontend developer",
+    "full stack", "fullstack", "qa engineer", "qa automation", "test engineer", "sdet",
+    "security engineer", "cybersecurity", "infosec", "network engineer", "systems engineer",
+    "platform engineer", "database administrator", "dba", "solutions engineer",
+    "infrastructure engineer", "site reliability engineer",
     "ios developer", "android developer", "mobile engineer", "embedded engineer",
     "firmware engineer", "technical artist", "pipeline engineer", "tools engineer",
+    "java developer", "python developer", ".net developer", "react developer",
+    "salesforce developer", "sap consultant", "sap abap", "web developer",
 ]
 
 def is_allowlisted_technical(title: str) -> bool:
@@ -794,6 +804,12 @@ def fetch_adzuna() -> list:
 
             for j in data.get("results", []):
                 title   = (j.get("title") or "").strip()
+                # Adzuna's `contract=1` + `what=` combo backfills with loosely-related
+                # results (facilities/construction/civil-engineering titles have shown
+                # up under plain "java developer" searches) — an allowlist is safer
+                # here than trying to blocklist every non-tech category as it surfaces.
+                if force_c2c and not is_allowlisted_technical(title):
+                    continue
                 company = (j.get("company") or {}).get("display_name", "").strip() or "Employer"
                 loc     = (j.get("location") or {}).get("display_name", "").strip() or "US"
                 desc    = strip_html(j.get("description") or "")[:400]
