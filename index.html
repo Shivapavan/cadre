@@ -1878,7 +1878,7 @@ function animateBar(targetPct, duration, cb) {
   requestAnimationFrame(tick);
 }
 
-function runAIAssist() {
+async function runAIAssist() {
   const resume = document.getElementById('resume-input').value.trim();
   if (!resume) {
     document.getElementById('resume-input').style.borderColor = '#EF4444';
@@ -1892,142 +1892,43 @@ function runAIAssist() {
   const j = JOBS[aiJobIndex];
   showAIStep(2);
   document.getElementById('gen-bar').style.width = '0%';
+  document.getElementById('gen-status').textContent = 'Generating your tailored materials…';
+  document.getElementById('gen-sub').textContent = `Reading your resume and matching it to ${j.company}'s role — this can take up to 20s`;
+  // Creeps toward 90% while the real API call is in flight (no fake step labels —
+  // this is one real request, not six discrete stages)
+  animateBar(90, 15000, null);
 
-  const steps = [
-    { status: 'Reading your resume…', sub: 'Extracting skills, titles, and accomplishments', pct: 20, delay: 600 },
-    { status: 'Analyzing job requirements…', sub: `Matching your background to ${j.company}'s stack`, pct: 45, delay: 700 },
-    { status: 'Tailoring your resume…', sub: 'Highlighting the most relevant experience', pct: 65, delay: 800 },
-    { status: 'Writing cover letter…', sub: `Crafting a compelling narrative for ${j.company}`, pct: 80, delay: 700 },
-    { status: 'Generating interview prep…', sub: 'Building Q&As based on their known process', pct: 90, delay: 600 },
-    { status: 'Finalizing negotiation guide…', sub: 'Analyzing TC data for this level and market', pct: 100, delay: 500 },
-  ];
-
-  let i = 0;
-  function nextStep() {
-    if (i >= steps.length) {
-      setTimeout(() => renderResults(j, resume), 300);
-      return;
+  try {
+    const res = await fetch('/api/ai-assist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        resume,
+        job: {
+          title: j.title, company: j.company, location: j.location,
+          level: j.level, skills: j.skills, stage: j.stage, intel: j.intel,
+        },
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Request failed (${res.status})`);
     }
-    const s = steps[i++];
-    document.getElementById('gen-status').textContent = s.status;
-    document.getElementById('gen-sub').textContent = s.sub;
-    animateBar(s.pct, s.delay * 0.8, () => setTimeout(nextStep, s.delay * 0.2));
+    const result = await res.json();
+    animateBar(100, 300, () => setTimeout(() => renderResults(j, result), 200));
+  } catch (e) {
+    document.getElementById('gen-status').textContent = 'Something went wrong';
+    document.getElementById('gen-sub').textContent = e.message || 'Please try again';
+    document.getElementById('gen-bar').style.width = '0%';
+    setTimeout(() => showAIStep(1), 2500);
   }
-  nextStep();
 }
 
-function renderResults(j, resume) {
-  // Extract a few skills from the resume for personalization
-  const skillsInResume = (resume.match(/\b(PySpark|Spark|Databricks|Delta Lake|Azure|AWS|GCP|Python|SQL|dbt|Airflow|Kafka|Flink|Snowflake|BigQuery|Redshift|Java|Scala|Go|Rust|React|Node|TypeScript|Kubernetes|Docker|Terraform|C\+\+|VLSI|Embedded|FPGA|ML|TensorFlow|PyTorch|LLM|OpenAI|Kubernetes|Ansible|Jenkins|GitHub Actions|Power BI|Tableau|Looker|Fivetran|Segment|Amplitude|Jira|Agile|Scrum|SAFe)\b/gi) || []);
-  const matchedSkills = [...new Set(skillsInResume.map(s => s))].slice(0, 5);
-  const skillStr = matchedSkills.length ? matchedSkills.join(', ') : j.skills.slice(0,3).join(', ');
-  const reqSkillStr = j.skills.slice(0,4).join(', ');
-
-  // Resume
-  const resumeText = `TAILORED RESUME HIGHLIGHTS — ${j.company.toUpperCase()}
-Role: ${j.title} · ${j.location} · ${j.level}
-
-SUMMARY
-Results-driven engineer with proven experience in ${skillStr}. Targeting ${j.title} at ${j.company} to ${j.stage === 'Series B' || j.stage === 'Series C' ? 'scale a high-growth platform' : 'drive enterprise-grade data solutions'}.
-
-KEY ACHIEVEMENTS (reordered & amplified for this role)
-▸ [Pull your #1 most relevant bullet — quantified impact first]
-▸ [Technical depth bullet matching ${j.skills[0]} or ${j.skills[1] || j.skills[0]}]
-▸ [Cross-functional or leadership signal — ${j.company} values this at ${j.level}]
-▸ [Scale or performance improvement with numbers]
-
-SKILLS TO LEAD WITH FOR ${j.company.toUpperCase()}
-Required match:  ${reqSkillStr}
-Your coverage:   ${skillStr}
-
-RECOMMENDED ADDITIONS TO YOUR RESUME
-• Quantify every bullet: "reduced pipeline latency by X%" beats "improved performance"
-• Mirror ${j.company}'s job description language — ATS scans for exact phrases
-• Add a "Selected Projects" section if you have any ${j.skills[0]} work to showcase`;
-
-  // Cover letter
-  const coverText = `Dear ${j.company} Hiring Team,
-
-I'm writing to express my strong interest in the ${j.title} position at ${j.company}. With hands-on experience in ${skillStr} and a track record of [your key accomplishment], I'm confident I can contribute meaningfully to your team.
-
-What draws me specifically to ${j.company}:
-• [Research their recent product launch, funding news, or open-source work]
-• Your ${j.stage} stage means real ownership and visible impact — exactly what I'm looking for
-• ${j.intel ? j.intel.split('.')[0] + '.' : 'Your engineering culture and technical challenges align with my career goals.'}
-
-In my recent role, I [describe your most relevant project in 2 sentences matching ${j.skills[0]}]. This resulted in [quantified outcome].
-
-I'd welcome the opportunity to discuss how my background in ${skillStr} aligns with what you're building.
-
-Warm regards,
-[Your Name]
-[LinkedIn] · [GitHub] · [Phone]`;
-
-  // Interview prep
-  const prepText = `INTERVIEW PREP — ${j.company.toUpperCase()} · ${j.title}
-${j.process ? 'Known process: ' + j.process : ''}
-
-LIKELY TECHNICAL QUESTIONS
-
-Q1: Walk me through how you'd design a ${j.skills[0]} pipeline from scratch.
-→ Cover: ingestion → transformation → serving. Mention trade-offs (batch vs. streaming, cost vs. latency). Reference your actual projects.
-
-Q2: How do you handle data quality at scale?
-→ Talk schema validation, anomaly detection, quarantine patterns, alerting. If you've used Great Expectations, dbt tests, or similar — name them.
-
-Q3: Describe a time a pipeline failed in production. How did you debug it?
-→ Prepare a STAR story: root cause, how you found it, what you changed, how you prevented recurrence.
-
-Q4: How would you optimize a slow ${j.skills[1] || j.skills[0]} query?
-→ EXPLAIN ANALYZE, indexing, partitioning, caching — know which apply to ${j.skills[1] || j.skills[0]}.
-
-Q5: ${j.company}-specific question about their stack or product.
-→ Research: What data infrastructure does ${j.company} likely use at ${j.stage}? What are their engineering blog posts about?
-
-BEHAVIORAL (almost certain)
-• "Tell me about a time you influenced a technical decision without authority"
-• "Describe your biggest failure and what you learned"
-• "How do you prioritize when everything is urgent?"
-
-QUESTIONS TO ASK THEM
-• "What does the data infrastructure look like today, and where do you want it in 18 months?"
-• "What's the biggest unsolved problem on the data team right now?"
-• "How does the data team collaborate with product and ML?"`;
-
-  // Negotiation
-  const negoText = `NEGOTIATION GUIDE — ${j.company.toUpperCase()} · ${j.title} · ${j.level}
-${j.tc ? 'Posted TC range: ' + j.tc : ''}
-
-ANCHORING STRATEGY
-1. Never name a number first — "I'm flexible, what's the range for this level?"
-2. If pressed: anchor 15–20% above your target
-3. After an offer: "I'm excited about this role. Can you do [X]?" — always counter once
-
-TC COMPONENTS TO NEGOTIATE
-□ Base salary (easiest to move)
-□ Sign-on bonus (one-time, often flexible)
-□ Equity (RSUs — negotiate grant size AND cliff/vesting)
-□ Performance review timing (ask for 6-month instead of 12)
-□ Title level (affects future comps everywhere)
-
-LEVERAGE PHRASES
-• "I have another offer in the [same range / slightly higher] — is there flexibility?"
-• "I'm very excited about ${j.company} specifically. If you can get to [X], I'm ready to sign."
-• "I'd love to make this work. What's the max you can do on [base / equity]?"
-
-MARKET DATA (use to calibrate)
-• Check levels.fyi for ${j.title} at ${j.stage} companies
-• Glassdoor, Blind, and Comprehensive.io for ${j.company}-specific data
-• For ${j.location}: ${j.location.includes('Remote') ? 'Remote typically tracks HQ market — negotiate as if on-site' : 'Factor in local cost of living and tax rates'}
-
-WALK-AWAY PREP
-Know your number before the call. Write it down. Don't negotiate while surprised.`;
-
-  // Populate all panels
-  document.getElementById('result-resume-content').textContent = resumeText;
-  document.getElementById('result-cover-content').textContent = coverText;
-  document.getElementById('result-prep-content').textContent = prepText;
-  document.getElementById('result-nego-content').textContent = negoText;
+function renderResults(j, result) {
+  document.getElementById('result-resume-content').textContent = result.resume;
+  document.getElementById('result-cover-content').textContent = result.coverLetter;
+  document.getElementById('result-prep-content').textContent = result.interviewPrep;
+  document.getElementById('result-nego-content').textContent = result.negotiation;
 
   ['resume','cover','prep','nego'].forEach(t => {
     const el = document.getElementById('res-company-' + t);
