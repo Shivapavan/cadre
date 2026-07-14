@@ -1,19 +1,19 @@
 """
 Cadre job scraper — GitHub Actions cron every 30 min
 Sources (all public APIs, no auth, no scraping, ToS-compliant):
-  • Greenhouse  → 200+ company career portals
-  • Lever       → 200+ company career portals
-  • Ashby       → 100+ startup career portals
-  • Dice RSS    → C2C / H1B / contract roles
+  • Greenhouse   → 200+ company career portals
+  • Lever        → 200+ company career portals
+  • Ashby        → 100+ startup career portals
+  • Adzuna       → live market search API
+  • SmartRecruiters, Oracle Fusion HCM, TalentBrew → enterprise career portals
 Writes to Supabase (upsert — no duplicates, no deleted jobs accumulating)
 """
 
 import json, os, re, sys, html, hashlib, time, urllib.request, urllib.error, urllib.parse
-import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from companies import (
     GREENHOUSE_COMPANIES, LEVER_COMPANIES, ASHBY_COMPANIES,
-    STAFFING_GREENHOUSE, STAFFING_LEVER, STAFFING_DICE_COMPANIES,
+    STAFFING_GREENHOUSE, STAFFING_LEVER,
 )
 
 SUPABASE_URL = os.environ["SUPABASE_URL"]
@@ -446,116 +446,6 @@ def fetch_ashby() -> list:
     print(f"  Ashby: {len(records)} jobs from {len(ASHBY_COMPANIES)} companies")
     return records
 
-# ── Source 4: Dice RSS (C2C / H1B contract roles) ────────────────────────
-
-# Build per-company Dice searches for staffing firms
-def _staffing_dice_searches():
-    searches = []
-    roles = ["data+engineer","java+developer","python+developer","devops+engineer",
-             "react+developer","full+stack","sap+consultant","salesforce+developer",
-             "ml+engineer","business+analyst","qa+automation","cloud+engineer"]
-    for company in STAFFING_DICE_COMPANIES:
-        encoded = company.replace(" ", "+")
-        for role in roles[:4]:  # limit per company to avoid too many requests
-            searches.append((f"{role}+%22{encoded}%22", "backend", "Corp+to+Corp"))
-    return searches
-
-DICE_SEARCHES = [
-    ("data+engineer",           "data",     "Corp+to+Corp"),
-    ("java+developer",          "backend",  "Corp+to+Corp"),
-    ("devops+engineer+aws",     "devops",   "Corp+to+Corp"),
-    ("python+developer",        "backend",  "Corp+to+Corp"),
-    ("embedded+engineer",       "embedded", "Corp+to+Corp"),
-    ("machine+learning+engineer","ml",      "Corp+to+Corp"),
-    ("sap+consultant",          "data",     "Corp+to+Corp"),
-    ("salesforce+developer",    "backend",  "Corp+to+Corp"),
-    ("react+developer",         "frontend", "Corp+to+Corp"),
-    ("full+stack+developer",    "backend",  "Corp+to+Corp"),
-    ("cloud+architect",         "devops",   "Corp+to+Corp"),
-    ("data+analyst",            "data",     "Corp+to+Corp"),
-    ("android+developer",       "mobile",   "Corp+to+Corp"),
-    ("ios+developer",           "mobile",   "Corp+to+Corp"),
-    ("security+engineer",       "security", "Corp+to+Corp"),
-    ("qa+automation",           "backend",  "Corp+to+Corp"),
-    ("business+analyst",        "pm",       "Corp+to+Corp"),
-    ("vlsi+engineer",           "embedded", "Corp+to+Corp"),
-    ("network+engineer",        "devops",   "Corp+to+Corp"),
-    ("dotnet+developer",        "backend",  "Corp+to+Corp"),
-]
-
-def fetch_dice() -> list:
-    records = []
-    now = datetime.now(timezone.utc)
-    for query, cat, emp_type in DICE_SEARCHES:
-        url = (f"https://www.dice.com/jobs/rss?q={query}&sc_pref8={emp_type}"
-               f"&countryCode=US&page=1&pageSize=20&filters.postedDate=THREE")
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": "Cadre/1.0 (job-board)"})
-            with urllib.request.urlopen(req, timeout=15) as r:
-                root = ET.fromstring(r.read())
-        except Exception as e:
-            print(f"  Dice error [{query}]: {e}")
-            continue
-
-        channel = root.find("channel")
-        if not channel:
-            continue
-        dice_ns = "http://www.dice.com/rss"
-
-        for item in channel.findall("item")[:15]:
-            title_el   = item.find("title")
-            link_el    = item.find("link")
-            desc_el    = item.find("description")
-            date_el    = item.find("pubDate")
-            loc_el     = item.find(f"{{{dice_ns}}}location")
-            comp_el    = item.find(f"{{{dice_ns}}}company")
-
-            if title_el is None or link_el is None:
-                continue
-
-            title   = (title_el.text or "").strip()
-            company = (comp_el.text if comp_el is not None else "").strip() or "Staffing Firm"
-            loc     = (loc_el.text if loc_el is not None else "").strip() or "US"
-            desc    = strip_html(desc_el.text or "")[:400] if desc_el is not None else ""
-            link    = (link_el.text or "").strip()
-            skills  = extract_skills(title + " " + desc)
-            remote  = "remote" in loc.lower() or "remote" in title.lower()
-
-            try:
-                from email.utils import parsedate_to_datetime
-                posted_dt = parsedate_to_datetime(date_el.text)
-            except Exception:
-                posted_dt = now
-
-            records.append({
-                "id":           job_id("dice", company, title + link[-20:]),
-                "source":       "dice",
-                "emp_type":     "c2c",
-                "cat":          cat,
-                "company":      company,
-                "company_slug": re.sub(r"[^a-z0-9]", "-", company.lower()),
-                "color":        color_for(company),
-                "letter":       letter_for(company),
-                "stage":        "Dice · C2C / 1099",
-                "title":        title,
-                "location":     loc,
-                "is_remote":    remote,
-                "posted_at":    posted_dt.isoformat(),
-                "posted_label": posted_label(posted_dt),
-                "is_new":       (now - posted_dt).days < 2,
-                "tc":           "Market Rate (C2C)",
-                "level":        "Senior" if is_senior(title) else "Mid-Senior",
-                "yoe":          "5+ years",
-                "skills":       skills,
-                "visa":         "H1B OK · H4 EAD OK · GC · USC",
-                "description":  desc or f"C2C/1099 contract: {title}",
-                "apply_url":    link,
-                "fetched_at":   now.isoformat(),
-            })
-
-    print(f"  Dice C2C: {len(records)} jobs")
-    return records
-
 # ── Main ─────────────────────────────────────────────────────────────────
 
 # ── Source 5: Adzuna API ─────────────────────────────────────────────────
@@ -582,6 +472,28 @@ ADZUNA_SEARCHES = [
     ("sap abap consultant contract",    "data"),
     ("full stack developer react node", "backend"),
     ("data analyst sql power bi",       "data"),
+
+    # C2C / corp-to-corp specific — Dice's own RSS feed is dead (shut down
+    # their public API in 2017, robots.txt now disallows /rss/ entirely), so
+    # these queries are the primary C2C source going forward.
+    ("data engineer corp to corp",           "data"),
+    ("java developer corp to corp c2c",      "backend"),
+    ("python developer c2c contract",        "backend"),
+    (".net developer corp to corp",          "backend"),
+    ("devops engineer c2c contract",         "devops"),
+    ("cloud engineer corp to corp",          "devops"),
+    ("network engineer c2c contract",        "devops"),
+    ("react developer corp to corp",         "frontend"),
+    ("full stack developer c2c contract",    "backend"),
+    ("qa automation engineer c2c",           "backend"),
+    ("business analyst c2c contract",        "pm"),
+    ("sap consultant corp to corp",          "data"),
+    ("salesforce developer c2c contract",    "backend"),
+    ("android developer corp to corp",       "mobile"),
+    ("ios developer corp to corp",           "mobile"),
+    ("machine learning engineer c2c",        "ml"),
+    ("security engineer corp to corp",       "security"),
+    ("vlsi engineer c2c contract",           "embedded"),
 ]
 
 # ── Source: Wynn Resorts (SmartRecruiters) ─────────────────────────────────
@@ -949,9 +861,6 @@ def main():
             continue
     print(f"  Staffing Greenhouse: {len(staffing_gh_records)} jobs")
     all_records.extend(staffing_gh_records)
-
-    # C2C roles from Dice (generic searches + per-staffing-firm searches)
-    all_records.extend(fetch_dice())
 
     # Adzuna live market jobs (optional — skipped if env vars not set)
     all_records.extend(fetch_adzuna())
