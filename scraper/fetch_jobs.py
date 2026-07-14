@@ -121,6 +121,9 @@ NON_TECH_TITLE_KEYWORDS = [
     "curriculum", "instructor", "teacher", "tutor",
     "physician", "nurse", "clinical", "chaplain", "therapist", "pharmacist",
     "real estate agent", "property manager",
+    "mental health", "support worker", "supported living", "care assistant", "care worker",
+    "social worker", "youth worker", "healthcare assistant", "home care", "domiciliary care",
+    "residential care", "support staff", "care coordinator", "case worker", "caregiver",
 ]
 
 def is_technical_role(title: str) -> bool:
