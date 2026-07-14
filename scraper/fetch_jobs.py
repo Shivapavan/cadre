@@ -8,7 +8,7 @@ Sources (all public APIs, no auth, no scraping, ToS-compliant):
 Writes to Supabase (upsert — no duplicates, no deleted jobs accumulating)
 """
 
-import json, os, re, sys, hashlib, time, urllib.request, urllib.error, urllib.parse
+import json, os, re, sys, html, hashlib, time, urllib.request, urllib.error, urllib.parse
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from companies import (
@@ -129,6 +129,25 @@ NON_TECH_TITLE_KEYWORDS = [
 def is_technical_role(title: str) -> bool:
     t = title.lower()
     return not any(kw in t for kw in NON_TECH_TITLE_KEYWORDS)
+
+# For enterprise boards with no usable category facet (Disney) — an allowlist
+# is more reliable than the exclude-list above, since most of the board is
+# non-technical and a blocklist alone lets too much through.
+TECH_TITLE_ALLOWLIST = [
+    "software engineer", "software developer", "engineer", "developer", "programmer",
+    "architect", "devops", "sre", "site reliability", "data engineer", "data scientist",
+    "machine learning", "ml engineer", "ai engineer", "cloud engineer", "backend", "frontend",
+    "full stack", "fullstack", "qa engineer", "test engineer", "sdet", "security engineer",
+    "cybersecurity", "infosec", "network engineer", "systems engineer", "platform engineer",
+    "database administrator", "dba", "technical director", "technical program",
+    "solutions engineer", "infrastructure engineer", "site reliability engineer",
+    "ios developer", "android developer", "mobile engineer", "embedded engineer",
+    "firmware engineer", "technical artist", "pipeline engineer", "tools engineer",
+]
+
+def is_allowlisted_technical(title: str) -> bool:
+    t = title.lower()
+    return any(kw in t for kw in TECH_TITLE_ALLOWLIST) and is_technical_role(title)
 
 def is_senior(title: str) -> bool:
     t = title.lower()
@@ -581,6 +600,242 @@ def fetch_wynn() -> list:
     return records
 
 
+# ── Source: Oracle Recruiting Cloud (Chase, Caesars) ───────────────────────
+# Both companies run the same Oracle Fusion HCM "Candidate Experience" stack —
+# one fetcher, parameterized per company. categoriesFacet gives a clean,
+# structured department field to filter on instead of title keywords.
+ORACLE_HCM_COMPANIES = [
+    {
+        "company": "JPMorgan Chase", "slug": "jpmorgan-chase",
+        "host": "jpmc.fa.oraclecloud.com", "site": "CX_1001",
+        "tech_category_ids": [
+            "300000086152753",  # Software Engineering
+            "300000086249821",  # Infrastructure Engineering
+            "300000086152508",  # Predictive Science (ML/data science)
+            "300049452668353",  # Technical Program Delivery
+            "300000086250134",  # Analytics Solutions & Delivery
+        ],
+    },
+    {
+        "company": "Caesars Entertainment", "slug": "caesars-entertainment",
+        "host": "edmn.fa.us2.oraclecloud.com", "site": "CX_1",
+        "tech_category_ids": [
+            "300000289546439",  # Information Technology
+            "300000289546412",  # Data Analytics and Business Intelligence
+            "300000830240017",  # Product Technology
+        ],
+    },
+]
+
+def fetch_oracle_hcm() -> list:
+    records = []
+    now = datetime.now(timezone.utc)
+
+    for cfg in ORACLE_HCM_COMPANIES:
+        company, slug = cfg["company"], cfg["slug"]
+        seen_ids = set()
+        for cat_id in cfg["tech_category_ids"]:
+            url = (
+                f"https://{cfg['host']}/hcmRestApi/resources/latest/recruitingCEJobRequisitions"
+                f"?onlyData=true&expand=requisitionList"
+                f"&finder=findReqs;siteNumber={cfg['site']},facetsList=CATEGORIES,"
+                f"limit=200,offset=0,sortBy=POSTING_DATES_DESC,selectedCategoriesFacet={cat_id}"
+            )
+            try:
+                req = urllib.request.Request(url, headers={"Accept": "application/json", "User-Agent": "Cadre/1.0"})
+                with urllib.request.urlopen(req, timeout=15) as r:
+                    data = json.loads(r.read())
+            except Exception as e:
+                print(f"  {company} error [{cat_id}]: {e}")
+                continue
+
+            for item in data.get("items", []):
+                for j in item.get("requisitionList", []):
+                    rid = j.get("Id")
+                    if not rid or rid in seen_ids:
+                        continue
+                    seen_ids.add(rid)
+                    title = (j.get("Title") or "").strip()
+                    if not title or not is_technical_role(title):
+                        continue
+                    loc  = j.get("PrimaryLocation") or "US"
+                    desc = strip_html(j.get("ExternalResponsibilitiesStr") or j.get("ShortDescriptionStr") or "")[:400]
+                    try:
+                        posted = datetime.fromisoformat(j["PostedDate"])
+                        posted = posted.replace(tzinfo=timezone.utc)
+                    except Exception:
+                        posted = now
+
+                    records.append({
+                        "id":           job_id("oracle-hcm", slug, rid),
+                        "source":       "oracle-hcm",
+                        "emp_type":     "fulltime",
+                        "cat":          classify_cat(title, desc),
+                        "company":      company,
+                        "company_slug": slug,
+                        "color":        color_for(company),
+                        "letter":       letter_for(company),
+                        "stage":        "Career Portal",
+                        "title":        title,
+                        "location":     loc,
+                        "is_remote":    "remote" in loc.lower() or "remote" in title.lower(),
+                        "posted_at":    posted.isoformat(),
+                        "posted_label": posted_label(posted),
+                        "is_new":       (now - posted).days < 3,
+                        "tc":           "Competitive",
+                        "level":        "Senior" if is_senior(title) else "Mid-Senior",
+                        "yoe":          "5+ years" if is_senior(title) else "3+ years",
+                        "skills":       extract_skills(title + " " + desc),
+                        "visa":         "",
+                        "description":  desc,
+                        "apply_url":    f"https://{cfg['host']}/hcmUI/CandidateExperience/en/sites/{cfg['site']}/job/{rid}",
+                        "fetched_at":   now.isoformat(),
+                    })
+            time.sleep(0.2)
+
+        print(f"  {company}: {len([r for r in records if r['company_slug'] == slug])} jobs")
+
+    return records
+
+
+# ── Source: US Bank (Workday) ───────────────────────────────────────────────
+USBANK_TECH_FACET_ID = "83f76798575a013b4ceb24cfc90555cb"  # Technology/Digital jobFamilyGroup
+
+def fetch_usbank() -> list:
+    records = []
+    now = datetime.now(timezone.utc)
+    # Same Workday WAF issue as MGM (see git history) — urllib gets blocked, curl doesn't.
+    import subprocess
+    payload = json.dumps({
+        "appliedFacets": {"jobFamilyGroup": [USBANK_TECH_FACET_ID]},
+        "limit": 100, "offset": 0, "searchText": "",
+    })
+    data = None
+    for attempt in range(3):
+        try:
+            result = subprocess.run(
+                ["curl", "-s", "--max-time", "15", "-X", "POST",
+                 "https://usbank.wd1.myworkdayjobs.com/wday/cxs/usbank/US_Bank_Careers/jobs",
+                 "-H", "Content-Type: application/json", "-d", payload],
+                capture_output=True, text=True, timeout=20,
+            )
+            parsed = json.loads(result.stdout)
+            if "jobPostings" not in parsed:
+                raise ValueError(parsed.get("errorCode", "unexpected response"))
+            data = parsed
+            break
+        except Exception as e:
+            if attempt == 2:
+                print(f"  US Bank error after 3 attempts: {e}")
+                return []
+            time.sleep(3 * (attempt + 1))
+
+    for j in data.get("jobPostings", []):
+        title = (j.get("title") or "").strip()
+        if not title or not is_technical_role(title):
+            continue
+        loc = j.get("locationsText") or "Cincinnati, OH"
+        label = j.get("postedOn") or "Posted Today"
+        m = re.search(r"(\d+)\s+Day", label)
+        posted = now - timedelta(days=int(m.group(1))) if m else now
+
+        records.append({
+            "id":           job_id("workday", "us-bank", j.get("externalPath", title)),
+            "source":       "workday",
+            "emp_type":     "fulltime",
+            "cat":          classify_cat(title, title),
+            "company":      "US Bank",
+            "company_slug": "us-bank",
+            "color":        color_for("US Bank"),
+            "letter":       letter_for("US Bank"),
+            "stage":        "Career Portal",
+            "title":        title,
+            "location":     loc,
+            "is_remote":    "remote" in loc.lower() or "remote" in title.lower(),
+            "posted_at":    posted.isoformat(),
+            "posted_label": posted_label(posted),
+            "is_new":       (now - posted).days < 3,
+            "tc":           "Competitive",
+            "level":        "Senior" if is_senior(title) else "Mid-Senior",
+            "yoe":          "5+ years" if is_senior(title) else "3+ years",
+            "skills":       extract_skills(title),
+            "visa":         "",
+            "description":  title,
+            "apply_url":    f"https://usbank.wd1.myworkdayjobs.com/US_Bank_Careers{j.get('externalPath','')}",
+            "fetched_at":   now.isoformat(),
+        })
+
+    print(f"  US Bank: {len(records)} jobs")
+    return records
+
+
+# ── Source: Disney (TalentBrew/Phenom) ──────────────────────────────────────
+# No working server-side category filter found (facet params don't affect the
+# response) — pull the full board and filter client-side with a strict
+# technical-title allowlist instead, since most of this board is non-technical.
+def fetch_disney() -> list:
+    records = []
+    now = datetime.now(timezone.utc)
+    try:
+        url = (
+            "https://jobs.disneycareers.com/search-jobs/results"
+            "?ActiveFacetID=0&CurrentPage=1&RecordsPerPage=800&Distance=50&RadiusUnitType=0"
+            "&Keywords=&Location=&ShowRadius=False&IsPagePersonalized=False"
+            "&SearchResultsModuleName=Search+Results&SearchFiltersModuleName=Search+Filters"
+            "&SortCriteria=0&SortDirection=0&SearchType=6"
+        )
+        req = urllib.request.Request(url, headers={"X-Requested-With": "XMLHttpRequest", "User-Agent": "Cadre/1.0"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            data = json.loads(r.read())
+    except Exception as e:
+        print(f"  Disney error: {e}")
+        return []
+
+    results_html = data.get("results", "")
+    rows = re.findall(
+        r'<a href="(/job/[^"]+)"[^>]*>\s*<h2>([^<]+)</h2>.*?job-date-posted">([^<]+)<.*?job-location">([^<]+)<',
+        results_html, re.S,
+    )
+    for path, title, date_str, loc in rows:
+        title = html.unescape(title).strip()
+        loc   = html.unescape(loc).strip()
+        if not is_allowlisted_technical(title):
+            continue
+        try:
+            posted = datetime.strptime(date_str.strip(), "%b. %d, %Y").replace(tzinfo=timezone.utc)
+        except Exception:
+            posted = now
+
+        records.append({
+            "id":           job_id("talentbrew", "disney", path),
+            "source":       "talentbrew",
+            "emp_type":     "fulltime",
+            "cat":          classify_cat(title, title),
+            "company":      "Disney",
+            "company_slug": "disney",
+            "color":        color_for("Disney"),
+            "letter":       letter_for("Disney"),
+            "stage":        "Career Portal",
+            "title":        title,
+            "location":     loc or "US",
+            "is_remote":    "remote" in loc.lower() or "remote" in title.lower(),
+            "posted_at":    posted.isoformat(),
+            "posted_label": posted_label(posted),
+            "is_new":       (now - posted).days < 3,
+            "tc":           "Competitive",
+            "level":        "Senior" if is_senior(title) else "Mid-Senior",
+            "yoe":          "5+ years" if is_senior(title) else "3+ years",
+            "skills":       extract_skills(title),
+            "visa":         "",
+            "description":  title,
+            "apply_url":    f"https://jobs.disneycareers.com{path}",
+            "fetched_at":   now.isoformat(),
+        })
+
+    print(f"  Disney: {len(records)} jobs")
+    return records
+
+
 def fetch_adzuna() -> list:
     app_id  = os.environ.get("ADZUNA_APP_ID", "")
     api_key = os.environ.get("ADZUNA_API_KEY", "")
@@ -669,6 +924,9 @@ def main():
     # Enterprise career portals on other ATS platforms — filtered to IT/engineering
     # roles via each platform's structured category field, not just title keywords
     all_records.extend(fetch_wynn())
+    all_records.extend(fetch_oracle_hcm())
+    all_records.extend(fetch_usbank())
+    all_records.extend(fetch_disney())
 
     # Staffing firms via their own portals (Greenhouse + Lever)
     print("  Fetching staffing firm portals...")
