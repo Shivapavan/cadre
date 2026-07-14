@@ -581,84 +581,6 @@ def fetch_wynn() -> list:
     return records
 
 
-# ── Source: MGM Resorts (Workday) ───────────────────────────────────────────
-# Workday's CXS API supports server-side facet filtering — request only the
-# "Information Technology" jobFamilyGroup instead of pulling all ~2,000+ jobs
-# (which are overwhelmingly hospitality/casino roles) and filtering client-side.
-MGM_IT_FACET_ID = "c986a940482310a8b41cef9aff103941"
-
-def fetch_mgm() -> list:
-    records = []
-    now = datetime.now(timezone.utc)
-    data = None
-    # Workday's edge WAF blocks Python's urllib client outright (verified: fails
-    # consistently both locally and in GitHub Actions) but allows curl — shell out
-    # instead of using urllib for this one source.
-    import subprocess
-    payload = json.dumps({
-        "appliedFacets": {"jobFamilyGroup": [MGM_IT_FACET_ID]},
-        "limit": 100, "offset": 0, "searchText": "",
-    })
-    for attempt in range(3):
-        try:
-            result = subprocess.run(
-                ["curl", "-s", "--max-time", "15", "-X", "POST",
-                 "https://mgmresorts.wd5.myworkdayjobs.com/wday/cxs/mgmresorts/MGMCareers/jobs",
-                 "-H", "Content-Type: application/json", "-d", payload],
-                capture_output=True, text=True, timeout=20,
-            )
-            parsed = json.loads(result.stdout)
-            if "jobPostings" not in parsed:
-                raise ValueError(parsed.get("errorCode", "unexpected response"))
-            data = parsed
-            break
-        except Exception as e:
-            if attempt == 2:
-                print(f"  MGM error after 3 attempts: {e}")
-                return []
-            time.sleep(3 * (attempt + 1))
-
-    for j in data.get("jobPostings", []):
-        title = (j.get("title") or "").strip()
-        if not title or not is_technical_role(title):
-            continue
-        loc = j.get("locationsText") or "Las Vegas, NV"
-        now_local = now
-        # Workday gives relative labels ("Posted Today", "Posted 3 Days Ago") not timestamps
-        label = j.get("postedOn") or "Posted Today"
-        m = re.search(r"(\d+)\s+Day", label)
-        posted = now_local - timedelta(days=int(m.group(1))) if m else now_local
-
-        records.append({
-            "id":           job_id("workday", "mgm-resorts", j.get("externalPath", title)),
-            "source":       "workday",
-            "emp_type":     "fulltime",
-            "cat":          classify_cat(title, title),
-            "company":      "MGM Resorts",
-            "company_slug": "mgm-resorts",
-            "color":        color_for("MGM Resorts"),
-            "letter":       letter_for("MGM Resorts"),
-            "stage":        "Career Portal",
-            "title":        title,
-            "location":     loc,
-            "is_remote":    "remote" in loc.lower() or "remote" in title.lower(),
-            "posted_at":    posted.isoformat(),
-            "posted_label": posted_label(posted),
-            "is_new":       (now - posted).days < 3,
-            "tc":           "Competitive",
-            "level":        "Senior" if is_senior(title) else "Mid-Senior",
-            "yoe":          "5+ years" if is_senior(title) else "3+ years",
-            "skills":       extract_skills(title),
-            "visa":         "",
-            "description":  title,
-            "apply_url":    f"https://mgmresorts.wd5.myworkdayjobs.com/MGMCareers{j.get('externalPath','')}",
-            "fetched_at":   now.isoformat(),
-        })
-
-    print(f"  MGM Resorts: {len(records)} jobs")
-    return records
-
-
 def fetch_adzuna() -> list:
     app_id  = os.environ.get("ADZUNA_APP_ID", "")
     api_key = os.environ.get("ADZUNA_API_KEY", "")
@@ -747,7 +669,6 @@ def main():
     # Enterprise career portals on other ATS platforms — filtered to IT/engineering
     # roles via each platform's structured category field, not just title keywords
     all_records.extend(fetch_wynn())
-    all_records.extend(fetch_mgm())
 
     # Staffing firms via their own portals (Greenhouse + Lever)
     print("  Fetching staffing firm portals...")
