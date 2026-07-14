@@ -698,77 +698,6 @@ def fetch_oracle_hcm() -> list:
     return records
 
 
-# ── Source: US Bank (Workday) ───────────────────────────────────────────────
-USBANK_TECH_FACET_ID = "83f76798575a013b4ceb24cfc90555cb"  # Technology/Digital jobFamilyGroup
-
-def fetch_usbank() -> list:
-    records = []
-    now = datetime.now(timezone.utc)
-    # Same Workday WAF issue as MGM (see git history) — urllib gets blocked, curl doesn't.
-    import subprocess
-    payload = json.dumps({
-        "appliedFacets": {"jobFamilyGroup": [USBANK_TECH_FACET_ID]},
-        "limit": 100, "offset": 0, "searchText": "",
-    })
-    data = None
-    for attempt in range(3):
-        try:
-            result = subprocess.run(
-                ["curl", "-s", "--max-time", "15", "-X", "POST",
-                 "https://usbank.wd1.myworkdayjobs.com/wday/cxs/usbank/US_Bank_Careers/jobs",
-                 "-H", "Content-Type: application/json", "-d", payload],
-                capture_output=True, text=True, timeout=20,
-            )
-            parsed = json.loads(result.stdout)
-            if "jobPostings" not in parsed:
-                raise ValueError(parsed.get("errorCode", "unexpected response"))
-            data = parsed
-            break
-        except Exception as e:
-            if attempt == 2:
-                print(f"  US Bank error after 3 attempts: {e}")
-                return []
-            time.sleep(3 * (attempt + 1))
-
-    for j in data.get("jobPostings", []):
-        title = (j.get("title") or "").strip()
-        if not title or not is_technical_role(title):
-            continue
-        loc = j.get("locationsText") or "Cincinnati, OH"
-        label = j.get("postedOn") or "Posted Today"
-        m = re.search(r"(\d+)\s+Day", label)
-        posted = now - timedelta(days=int(m.group(1))) if m else now
-
-        records.append({
-            "id":           job_id("workday", "us-bank", j.get("externalPath", title)),
-            "source":       "workday",
-            "emp_type":     "fulltime",
-            "cat":          classify_cat(title, title),
-            "company":      "US Bank",
-            "company_slug": "us-bank",
-            "color":        color_for("US Bank"),
-            "letter":       letter_for("US Bank"),
-            "stage":        "Career Portal",
-            "title":        title,
-            "location":     loc,
-            "is_remote":    "remote" in loc.lower() or "remote" in title.lower(),
-            "posted_at":    posted.isoformat(),
-            "posted_label": posted_label(posted),
-            "is_new":       (now - posted).days < 3,
-            "tc":           "Competitive",
-            "level":        "Senior" if is_senior(title) else "Mid-Senior",
-            "yoe":          "5+ years" if is_senior(title) else "3+ years",
-            "skills":       extract_skills(title),
-            "visa":         "",
-            "description":  title,
-            "apply_url":    f"https://usbank.wd1.myworkdayjobs.com/US_Bank_Careers{j.get('externalPath','')}",
-            "fetched_at":   now.isoformat(),
-        })
-
-    print(f"  US Bank: {len(records)} jobs")
-    return records
-
-
 # ── Source: Disney (TalentBrew/Phenom) ──────────────────────────────────────
 # No working server-side category filter found (facet params don't affect the
 # response) — pull the full board and filter client-side with a strict
@@ -925,7 +854,6 @@ def main():
     # roles via each platform's structured category field, not just title keywords
     all_records.extend(fetch_wynn())
     all_records.extend(fetch_oracle_hcm())
-    all_records.extend(fetch_usbank())
     all_records.extend(fetch_disney())
 
     # Staffing firms via their own portals (Greenhouse + Lever)
