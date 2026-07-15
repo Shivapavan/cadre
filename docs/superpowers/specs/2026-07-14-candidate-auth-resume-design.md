@@ -48,11 +48,11 @@ No changes to the existing `jobs` table.
 
 All three require a valid Supabase auth JWT (sent automatically by the browser client via the `Authorization` header) and explicitly verify resume ownership server-side — not relying on RLS alone.
 
-- **`api/resume-upload.js`** (new) — `POST`. Accepts either a file (PDF/DOCX, multipart) or pasted text (JSON). If a file: extracts text server-side using `pdf-parse` (PDF) or `mammoth` (DOCX, configured to include headers/footers — this is the fix for the name-in-header bug), uploads the original file to the `resumes` Storage bucket, inserts a row into the `resumes` table. Returns the created resume record.
+- **`api/resume-upload.js`** (new) — `POST`. Accepts either a file (PDF/DOCX, sent as base64 JSON to avoid a multipart-parsing dependency) or pasted text (JSON). If a file: extracts text server-side using `pdf-parse` (PDF) or, for DOCX, by reading the file's internal ZIP structure directly with `jszip` and concatenating `word/header*.xml` + `word/document.xml` + `word/footer*.xml` (tags stripped) — this is the fix for the name-in-header bug. (Correction from an earlier draft of this spec: `mammoth` was considered for DOCX but verified to never have supported header/footer extraction — a `jszip`-based direct extraction is used instead, and is in fact simpler than the two-dependency approach originally proposed.) Uploads the original file to the `resumes` Storage bucket, inserts a row into the `resumes` table. Returns the created resume record.
 - **`api/resumes.js`** (new) — `GET` lists the authenticated candidate's resumes (id, label, file_name, created_at — not the full text, to keep the picker payload light). `DELETE /?id=` removes one (also deletes the Storage file).
 - **`api/ai-assist.js`** (modified) — request body changes from `{resume, job}` to `{resumeId, job}`. Looks up `resume_text` from the `resumes` table (filtered by `id = resumeId AND user_id = <authenticated user>`), then proceeds with the existing Anthropic-primary/OpenAI-fallback logic completely unchanged.
 
-**New dependencies**: `pdf-parse`, `mammoth` (approved). No client-side parsing libraries needed — extraction is server-side only, keeping `index.html` free of large new JS bundles.
+**New dependencies**: `pdf-parse`, `jszip` (approved — see correction note above; `jszip` replaces the originally-proposed `mammoth`). No client-side parsing libraries needed — extraction is server-side only, keeping `index.html` free of large new JS bundles.
 
 ## Frontend Flow (`index.html`)
 
@@ -80,7 +80,7 @@ Manual verification only (static-HTML project, no test framework):
 
 1. Sign up → receive and click confirmation email → log in
 2. Upload a PDF resume → verify extracted text is complete and correct
-3. Upload a DOCX resume, specifically re-testing `Srikanth_Sama.docx` → confirm the candidate's name (previously missing because it lived in a DOCX header) now extracts correctly via `mammoth`'s header/footer handling
+3. Upload a DOCX resume, specifically re-testing `Srikanth_Sama.docx` → confirm the candidate's name (previously missing because it lived in a DOCX header) now extracts correctly via the `jszip`-based header/footer extraction
 4. Paste resume text directly (no file) → verify it saves correctly
 5. Run AI Assist against an uploaded resume for a real job listing → confirm tailored materials generate correctly using the saved resume, no paste box shown
 6. Edit a generated result in place → confirm the edit is reflected in the Copy button's output
