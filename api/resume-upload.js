@@ -5,8 +5,38 @@ const { supabaseAdmin, getAuthedUser } = require("../lib/supabaseAdmin");
 
 const MAX_FILE_BYTES = 3 * 1024 * 1024; // 3MB raw, matches Global Constraints
 
-function stripXmlTags(xml) {
-  return xml.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+function decodeXmlEntities(s) {
+  return s
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&");
+}
+
+// Word XML mixes visible text (<w:t> runs) with structural/positioning
+// metadata (DrawingML image anchors, textbox coordinates, etc.) that also
+// has plain-text content ("right", "285529"). Extracting only <w:t> runs
+// avoids pulling that metadata in, and joining runs with no separator
+// avoids splitting words Word stored across adjacent runs (e.g. spell-check
+// commonly splits a surname into two runs with no space between them).
+function extractRunText(xml) {
+  const tokenRe = /<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>|<w:tab\s*\/?>|<w:br\s*\/?>|<\/w:p>/g;
+  let result = "";
+  let match;
+  while ((match = tokenRe.exec(xml)) !== null) {
+    const token = match[0];
+    if (token.startsWith("<w:t")) {
+      result += decodeXmlEntities(match[1]);
+    } else if (token.startsWith("<w:tab")) {
+      result += "\t";
+    } else if (token.startsWith("<w:br")) {
+      result += "\n";
+    } else {
+      result += "\n"; // </w:p>
+    }
+  }
+  return result;
 }
 
 // docx files are a ZIP of XML parts. mammoth.js (considered during planning)
@@ -19,19 +49,23 @@ async function extractDocxText(buffer) {
 
   for (const name of fileNames) {
     if (/^word\/header\d*\.xml$/.test(name)) {
-      parts.push(await zip.files[name].async("string"));
+      parts.push(extractRunText(await zip.files[name].async("string")));
     }
   }
   if (zip.files["word/document.xml"]) {
-    parts.push(await zip.files["word/document.xml"].async("string"));
+    parts.push(extractRunText(await zip.files["word/document.xml"].async("string")));
   }
   for (const name of fileNames) {
     if (/^word\/footer\d*\.xml$/.test(name)) {
-      parts.push(await zip.files[name].async("string"));
+      parts.push(extractRunText(await zip.files[name].async("string")));
     }
   }
 
-  return stripXmlTags(parts.join(" "));
+  return parts
+    .join("\n")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 async function extractPdfText(buffer) {
