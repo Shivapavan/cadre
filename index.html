@@ -339,9 +339,9 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,0.06);paddin
       <li><a href="#salary">Salary Intel</a></li>
       <li><a href="#pricing">Pricing</a></li>
     </ul>
-    <div class="nav-actions">
-      <a href="#" class="btn-ghost">Sign in</a>
-      <a href="#" class="btn-primary">Get started free</a>
+    <div class="nav-actions" id="nav-auth-area">
+      <a href="#" class="btn-ghost" id="nav-signin-link" onclick="openAuthModal('signin');return false;">Sign in</a>
+      <a href="#" class="btn-primary" id="nav-signup-link" onclick="openAuthModal('signup');return false;">Get started free</a>
     </div>
   </div>
 </nav>
@@ -901,6 +901,29 @@ Skills: PySpark, Python, SQL, Azure, Databricks, dbt, Airflow, Power BI"></texta
   </div>
 </div>
 
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div style="font-size:1.2rem;font-weight:800;color:var(--navy)" id="auth-modal-title">Sign in</div>
+      <button class="modal-close" onclick="closeAuthModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="auth-error" style="display:none;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;padding:.75rem 1rem;border-radius:10px;font-size:.85rem;margin-bottom:1rem"></div>
+      <div id="auth-success" style="display:none;background:#F0FDF4;border:1px solid #BBF7D0;color:#15803D;padding:.75rem 1rem;border-radius:10px;font-size:.85rem;margin-bottom:1rem"></div>
+      <label style="font-size:.8rem;font-weight:600;color:var(--navy);display:block;margin-bottom:.4rem">Email</label>
+      <input type="email" id="auth-email" placeholder="you@example.com" style="width:100%;padding:.75rem 1rem;border:1px solid var(--border);border-radius:10px;font-size:.95rem;margin-bottom:1rem" />
+      <label style="font-size:.8rem;font-weight:600;color:var(--navy);display:block;margin-bottom:.4rem">Password</label>
+      <input type="password" id="auth-password" placeholder="At least 6 characters" style="width:100%;padding:.75rem 1rem;border:1px solid var(--border);border-radius:10px;font-size:.95rem;margin-bottom:1.25rem" />
+      <button class="apply-action" id="auth-submit-btn" onclick="handleAuthSubmit()">Sign in</button>
+      <p style="text-align:center;font-size:.85rem;color:var(--slate);margin-top:1rem">
+        <span id="auth-toggle-text">Don't have an account?</span>
+        <a href="#" id="auth-toggle-link" onclick="toggleAuthMode();return false;" style="color:var(--indigo);font-weight:600">Sign up</a>
+      </p>
+    </div>
+  </div>
+</div>
+
 <style>
 .ai-step{}
 .step-indicator{display:flex;align-items:center;gap:0}
@@ -951,9 +974,19 @@ async function getAuthToken() {
 }
 
 async function updateAuthUI() {
-  // Filled in during Task 3 — for now, just log so we can verify session detection works
   const user = await getCurrentUser();
-  console.log('[auth] current user:', user?.email || 'not logged in');
+  const navArea = document.getElementById('nav-auth-area');
+  if (user) {
+    navArea.innerHTML = `
+      <span style="font-size:.85rem;color:var(--slate);margin-right:.5rem">${user.email}</span>
+      <a href="#" class="btn-ghost" onclick="handleSignOut();return false;">Sign out</a>
+    `;
+  } else {
+    navArea.innerHTML = `
+      <a href="#" class="btn-ghost" onclick="openAuthModal('signin');return false;">Sign in</a>
+      <a href="#" class="btn-primary" onclick="openAuthModal('signup');return false;">Get started free</a>
+    `;
+  }
 }
 
 sb.auth.onAuthStateChange((_event, _session) => { updateAuthUI(); });
@@ -1964,9 +1997,84 @@ function renderResults(j, result) {
   showAIStep(3);
 }
 
+// ── AUTH: modal + signup/signin/signout ─────────────────────────────────
+let authMode = 'signin';
+
+function openAuthModal(mode) {
+  authMode = mode;
+  applyAuthMode();
+  document.getElementById('auth-error').style.display = 'none';
+  document.getElementById('auth-success').style.display = 'none';
+  document.getElementById('auth-email').value = '';
+  document.getElementById('auth-password').value = '';
+  document.getElementById('auth-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function toggleAuthMode() {
+  authMode = authMode === 'signin' ? 'signup' : 'signin';
+  applyAuthMode();
+}
+
+function applyAuthMode() {
+  const isSignup = authMode === 'signup';
+  document.getElementById('auth-modal-title').textContent = isSignup ? 'Create your account' : 'Sign in';
+  document.getElementById('auth-submit-btn').textContent = isSignup ? 'Sign up' : 'Sign in';
+  document.getElementById('auth-toggle-text').textContent = isSignup ? 'Already have an account?' : "Don't have an account?";
+  document.getElementById('auth-toggle-link').textContent = isSignup ? 'Sign in' : 'Sign up';
+}
+
+async function handleAuthSubmit() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const errorEl = document.getElementById('auth-error');
+  const successEl = document.getElementById('auth-success');
+  errorEl.style.display = 'none';
+  successEl.style.display = 'none';
+
+  if (!email || !password) {
+    errorEl.textContent = 'Email and password are required.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (authMode === 'signup') {
+    const { error } = await sb.auth.signUp({ email, password });
+    if (error) {
+      errorEl.textContent = error.message;
+      errorEl.style.display = 'block';
+      return;
+    }
+    successEl.textContent = 'Account created! Check your email to confirm, then sign in.';
+    successEl.style.display = 'block';
+    authMode = 'signin';
+    applyAuthMode();
+  } else {
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error) {
+      errorEl.textContent = error.message;
+      errorEl.style.display = 'block';
+      return;
+    }
+    closeAuthModal();
+  }
+}
+
+async function handleSignOut() {
+  await sb.auth.signOut();
+}
+
 // Close AI modal on overlay click
 document.getElementById('ai-modal').addEventListener('click', function(e) {
   if (e.target === this) closeAIModal();
+});
+document.getElementById('auth-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAuthModal();
 });
 </script>
 </body>
