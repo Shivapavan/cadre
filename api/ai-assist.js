@@ -1,6 +1,9 @@
 // AI Assist — generates a tailored resume, cover letter, interview prep, and
-// negotiation guide from a pasted resume + job posting. Tries Anthropic first,
-// falls back to OpenAI if the primary call fails or its key isn't configured.
+// negotiation guide from a candidate's saved resume + job posting. Tries
+// Anthropic first, falls back to OpenAI if the primary call fails or its key
+// isn't configured.
+
+const { supabaseAdmin, getAuthedUser } = require("../lib/supabaseAdmin");
 
 const RESULT_SCHEMA = {
   name: "tailored_application_materials",
@@ -125,13 +128,28 @@ module.exports = async function handler(req, res) {
   if (req.method === "OPTIONS") return res.status(200).end();
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
-  const { resume, job } = req.body || {};
-  if (!resume || typeof resume !== "string" || !resume.trim()) {
-    return res.status(400).json({ error: "resume is required" });
+  const user = await getAuthedUser(req);
+  if (!user) return res.status(401).json({ error: "Please sign in first" });
+
+  const { resumeId, job } = req.body || {};
+  if (!resumeId) {
+    return res.status(400).json({ error: "resumeId is required" });
   }
   if (!job || !job.title || !job.company) {
     return res.status(400).json({ error: "job (title, company) is required" });
   }
+
+  const { data: resumeRow, error: resumeErr } = await supabaseAdmin
+    .from("resumes")
+    .select("resume_text")
+    .eq("id", resumeId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (resumeErr || !resumeRow) {
+    return res.status(404).json({ error: "Resume not found" });
+  }
+  const resume = resumeRow.resume_text;
 
   let result, provider;
   try {
