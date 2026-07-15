@@ -20,6 +20,8 @@ Candidates create an account, upload one or more resumes once, and AI Assist use
 
 **Auth**: Supabase Auth (email/password), email confirmation required before login. Reuses Supabase's built-in `auth.users` — no custom credentials table.
 
+*Operational note*: Supabase's default outbound email (used for confirmation links) has low rate limits on free/low tiers. Fine for beta-scale signups; if signup volume grows enough to hit those limits, the fix is configuring custom SMTP in the Supabase dashboard — no code change required, called out here so it isn't a surprise later.
+
 **New table — `resumes`**:
 ```sql
 CREATE TABLE resumes (
@@ -55,8 +57,8 @@ All three require a valid Supabase auth JWT (sent automatically by the browser c
 ## Frontend Flow (`index.html`)
 
 - **Auth modal** replaces the dead `href="#"` links. Email/password fields call the Supabase browser client (`@supabase/supabase-js`, using the public `anon` key — safe to expose, same pattern as any Supabase web app) directly: `supabase.auth.signUp()` / `supabase.auth.signInWithPassword()`. Session persistence is handled automatically by the client library (localStorage). Header switches to showing the candidate's email + "Sign out" once authenticated.
-- **"My Resumes" section** — upload a new resume (file picker, drag-drop optional/stretch) or paste text, with an optional label (e.g. "Backend resume", "Data resume"). Lists existing resumes with delete action.
-- **AI Assist Step 1 changes**: the paste textarea is replaced with a **resume picker** — select from saved resumes, or a shortcut to upload a new one inline without leaving the flow. If the candidate isn't logged in, this step shows a sign-in/sign-up prompt instead.
+- **"My Resumes" section** — upload a new resume via a standard file input (no drag-drop in this build) or paste text, with an optional label (e.g. "Backend resume", "Data resume"). Lists existing resumes with delete action.
+- **AI Assist Step 1 changes**: the paste textarea is replaced with a **resume picker** — select from saved resumes (defaulting to the most recently created one, switchable), or a shortcut to upload a new one inline without leaving the flow. If the candidate isn't logged in, this step shows a sign-in/sign-up prompt instead.
 - **Result panels become editable**: `result-resume-content`, `result-cover-content`, `result-prep-content`, `result-nego-content` change from read-only `<div>`s (currently just `.textContent` set once) to editable text areas, so the candidate can tweak AI-generated content before copying. Not persisted — session-only, consistent with the "no application tracking yet" scope boundary.
 
 ## Error Handling
