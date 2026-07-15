@@ -932,7 +932,33 @@ Skills: PySpark, Python, SQL, Azure, Databricks, dbt, Airflow, Power BI"></texta
 .result-content{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;font-size:.875rem;color:var(--navy);line-height:1.8;white-space:pre-wrap;max-height:320px;overflow-y:auto;font-family:'Courier New',monospace}
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
 <script>
+// ── AUTH: Supabase client ────────────────────────────────────────────────
+const SUPABASE_URL = 'https://igtfiygorammhnjfhfcp.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_ZQoSTOy6SBc1BDaV0Lj8Fw_GhL5atYc';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function getCurrentUser() {
+  const { data: { session } } = await sb.auth.getSession();
+  return session?.user || null;
+}
+
+async function getAuthToken() {
+  const { data: { session } } = await sb.auth.getSession();
+  return session?.access_token || null;
+}
+
+async function updateAuthUI() {
+  // Filled in during Task 3 — for now, just log so we can verify session detection works
+  const user = await getCurrentUser();
+  console.log('[auth] current user:', user?.email || 'not logged in');
+}
+
+sb.auth.onAuthStateChange((_event, _session) => { updateAuthUI(); });
+document.addEventListener('DOMContentLoaded', updateAuthUI);
+
 // JOB DATA
 const JOBS = [
   {cat:"data",company:"Databricks",color:"#FF6154",letter:"D",stage:"Series I · $43B val",
