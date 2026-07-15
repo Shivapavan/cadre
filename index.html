@@ -798,7 +798,7 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,0.06);paddin
       <button class="modal-close" onclick="closeAIModal()">✕</button>
     </div>
 
-    <!-- STEP 1: Upload Resume -->
+    <!-- STEP 1: Pick a resume (or sign in) -->
     <div id="ai-step-1" class="ai-step">
       <div class="modal-body">
         <div class="step-indicator">
@@ -810,20 +810,20 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,0.06);paddin
           <div class="step-line"></div>
           <div class="step-dot" data-s="4">4</div>
         </div>
-        <h3 style="font-size:1.1rem;font-weight:700;color:var(--navy);margin:1.5rem 0 .5rem">Paste your resume or key experience</h3>
-        <p style="font-size:.875rem;color:#64748B;margin-bottom:1.25rem">The AI will tailor your resume, write a cover letter, and generate interview prep — all specific to this role.</p>
-        <textarea id="resume-input" class="resume-textarea" placeholder="Paste your resume text here…
 
-Example:
-Senior Data Engineer at Accenture (2020–present)
-• Built medallion architecture pipelines using Azure Data Factory and Databricks
-• Designed Bronze/Silver/Gold Delta Lake layers processing 50M+ records/day
-• Led migration from on-prem SQL Server to Microsoft Fabric OneLake
+        <div id="ai-signin-prompt" style="display:none;text-align:center;padding:2rem 1rem">
+          <p style="font-size:.95rem;color:var(--navy);margin-bottom:1.25rem">Sign in to use a saved resume with AI Assist.</p>
+          <button class="apply-action" style="width:auto;padding:.75rem 2rem" onclick="closeAIModal();openAuthModal('signin');">Sign in →</button>
+        </div>
 
-Skills: PySpark, Python, SQL, Azure, Databricks, dbt, Airflow, Power BI"></textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem">
-          <span style="font-size:.78rem;color:var(--slate)">Your data is never stored or shared</span>
-          <button class="apply-action" style="width:auto;padding:.75rem 2rem" onclick="runAIAssist()">Generate with AI →</button>
+        <div id="ai-resume-picker-wrap" style="display:none">
+          <h3 style="font-size:1.1rem;font-weight:700;color:var(--navy);margin:1.5rem 0 .5rem">Choose a resume</h3>
+          <p style="font-size:.875rem;color:#64748B;margin-bottom:1.25rem">The AI will tailor this resume, write a cover letter, and generate interview prep — all specific to this role.</p>
+          <div id="ai-resume-picker-list"></div>
+          <button style="width:100%;padding:.75rem;border:1px dashed var(--border);border-radius:10px;background:none;cursor:pointer;color:var(--indigo);font-weight:600;font-size:.85rem;margin-top:.75rem" onclick="closeAIModal();openMyResumesModal();">+ Upload a new resume</button>
+          <div style="display:flex;justify-content:flex-end;margin-top:1.25rem">
+            <button class="apply-action" style="width:auto;padding:.75rem 2rem" id="ai-generate-btn" onclick="runAIAssist()" disabled>Generate with AI →</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1897,16 +1897,56 @@ setInterval(() => fetchFromAPI(currentPage), 30 * 60 * 1000);
 // ── AI ASSIST ──────────────────────────────────────────────────────────────
 let aiJobIndex = null;
 
-function openAIAssist(i) {
+let selectedResumeId = null;
+
+async function openAIAssist(i) {
   aiJobIndex = i;
   const j = JOBS[i];
   document.getElementById('ai-modal-title').textContent = `Apply to ${j.company} — ${j.title}`;
   showAIStep(1);
-  document.getElementById('resume-input').value = '';
+  selectedResumeId = null;
   document.getElementById('ai-modal').style.display = 'flex';
   document.getElementById('ai-modal').style.alignItems = 'center';
   document.getElementById('ai-modal').style.justifyContent = 'center';
   document.body.style.overflow = 'hidden';
+
+  const user = await getCurrentUser();
+  if (!user) {
+    document.getElementById('ai-signin-prompt').style.display = 'block';
+    document.getElementById('ai-resume-picker-wrap').style.display = 'none';
+    return;
+  }
+  document.getElementById('ai-signin-prompt').style.display = 'none';
+  document.getElementById('ai-resume-picker-wrap').style.display = 'block';
+  await loadAIResumePicker();
+}
+
+async function loadAIResumePicker() {
+  const listEl = document.getElementById('ai-resume-picker-list');
+  const genBtn = document.getElementById('ai-generate-btn');
+  listEl.innerHTML = '<p style="color:var(--slate);font-size:.85rem">Loading your resumes…</p>';
+  const token = await getAuthToken();
+  const res = await fetch('/api/resumes', { headers: { Authorization: `Bearer ${token}` } });
+  const data = await res.json();
+
+  if (!res.ok || !data.resumes.length) {
+    listEl.innerHTML = '<p style="color:var(--slate);font-size:.85rem">No saved resumes yet — upload one to continue.</p>';
+    genBtn.disabled = true;
+    return;
+  }
+
+  listEl.innerHTML = data.resumes.map((r, idx) => `
+    <label style="display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;border:1px solid var(--border);border-radius:10px;margin-bottom:.5rem;cursor:pointer">
+      <input type="radio" name="ai-resume-choice" value="${r.id}" ${idx === 0 ? 'checked' : ''} onchange="selectedResumeId='${r.id}';document.getElementById('ai-generate-btn').disabled=false;">
+      <div>
+        <div style="font-weight:700;font-size:.85rem;color:var(--navy)">${r.label}</div>
+        <div style="font-size:.72rem;color:var(--slate)">${r.file_name || 'Pasted text'} · ${new Date(r.created_at).toLocaleDateString()}</div>
+      </div>
+    </label>
+  `).join('');
+
+  selectedResumeId = data.resumes[0].id;
+  genBtn.disabled = false;
 }
 
 function closeAIModal() {
@@ -1948,7 +1988,6 @@ function goToApply() {
 
 function resetAI() {
   showAIStep(1);
-  document.getElementById('resume-input').value = '';
 }
 
 function animateBar(targetPct, duration, cb) {
@@ -1965,16 +2004,7 @@ function animateBar(targetPct, duration, cb) {
 }
 
 async function runAIAssist() {
-  const resume = document.getElementById('resume-input').value.trim();
-  if (!resume) {
-    document.getElementById('resume-input').style.borderColor = '#EF4444';
-    document.getElementById('resume-input').placeholder = 'Please paste your resume first…';
-    setTimeout(() => {
-      document.getElementById('resume-input').style.borderColor = '';
-    }, 2000);
-    return;
-  }
-
+  if (!selectedResumeId) return;
   const j = JOBS[aiJobIndex];
   showAIStep(2);
   document.getElementById('gen-bar').style.width = '0%';
@@ -1985,11 +2015,12 @@ async function runAIAssist() {
   animateBar(90, 15000, null);
 
   try {
+    const token = await getAuthToken();
     const res = await fetch('/api/ai-assist', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
-        resume,
+        resumeId: selectedResumeId,
         job: {
           title: j.title, company: j.company, location: j.location,
           level: j.level, skills: j.skills, stage: j.stage, intel: j.intel,
