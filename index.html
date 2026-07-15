@@ -865,7 +865,7 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,0.06);paddin
             <span class="result-badge">AI-tailored for <span id="res-company-resume"></span></span>
             <button class="copy-btn" onclick="copyResult('result-resume-content')">Copy</button>
           </div>
-          <div class="result-content" id="result-resume-content"></div>
+          <textarea class="result-content" id="result-resume-content"></textarea>
         </div>
 
         <div id="result-cover" class="result-panel" style="display:none">
@@ -873,7 +873,7 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,0.06);paddin
             <span class="result-badge">Cover letter · <span id="res-company-cover"></span></span>
             <button class="copy-btn" onclick="copyResult('result-cover-content')">Copy</button>
           </div>
-          <div class="result-content" id="result-cover-content"></div>
+          <textarea class="result-content" id="result-cover-content"></textarea>
         </div>
 
         <div id="result-prep" class="result-panel" style="display:none">
@@ -881,7 +881,7 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,0.06);paddin
             <span class="result-badge">Interview prep · <span id="res-company-prep"></span></span>
             <button class="copy-btn" onclick="copyResult('result-prep-content')">Copy</button>
           </div>
-          <div class="result-content" id="result-prep-content"></div>
+          <textarea class="result-content" id="result-prep-content"></textarea>
         </div>
 
         <div id="result-nego" class="result-panel" style="display:none">
@@ -889,7 +889,7 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,0.06);paddin
             <span class="result-badge">Negotiation guide · <span id="res-company-nego"></span></span>
             <button class="copy-btn" onclick="copyResult('result-nego-content')">Copy</button>
           </div>
-          <div class="result-content" id="result-nego-content"></div>
+          <textarea class="result-content" id="result-nego-content"></textarea>
         </div>
 
         <div style="display:flex;gap:.75rem;margin-top:1.25rem">
@@ -978,7 +978,8 @@ footer{background:var(--navy);border-top:1px solid rgba(255,255,255,0.06);paddin
 .result-badge{font-size:.75rem;font-weight:600;color:var(--indigo);background:rgba(99,102,241,0.08);padding:.3rem .75rem;border-radius:6px}
 .copy-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:.3rem .75rem;font-size:.75rem;font-weight:600;color:var(--slate);cursor:pointer;transition:all .2s}
 .copy-btn:hover{background:var(--navy);color:var(--white);border-color:var(--navy)}
-.result-content{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;font-size:.875rem;color:var(--navy);line-height:1.8;white-space:pre-wrap;max-height:320px;overflow-y:auto;font-family:'Courier New',monospace}
+.result-content{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;font-size:.875rem;color:var(--navy);line-height:1.8;white-space:pre-wrap;max-height:320px;overflow-y:auto;font-family:'Courier New',monospace;width:100%;resize:vertical;min-height:200px}
+.result-content:focus{outline:none;border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,0.1)}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -1972,7 +1973,7 @@ function showResultTab(name, btn) {
 
 function copyResult(id) {
   const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.textContent).then(() => {
+  navigator.clipboard.writeText(el.value).then(() => {
     const btn = el.parentElement.querySelector('.copy-btn');
     const orig = btn.textContent;
     btn.textContent = 'Copied!';
@@ -2042,10 +2043,10 @@ async function runAIAssist() {
 }
 
 function renderResults(j, result) {
-  document.getElementById('result-resume-content').textContent = result.resume;
-  document.getElementById('result-cover-content').textContent = result.coverLetter;
-  document.getElementById('result-prep-content').textContent = result.interviewPrep;
-  document.getElementById('result-nego-content').textContent = result.negotiation;
+  document.getElementById('result-resume-content').value = result.resume;
+  document.getElementById('result-cover-content').value = result.coverLetter;
+  document.getElementById('result-prep-content').value = result.interviewPrep;
+  document.getElementById('result-nego-content').value = result.negotiation;
 
   ['resume','cover','prep','nego'].forEach(t => {
     const el = document.getElementById('res-company-' + t);
