@@ -924,6 +924,32 @@ Skills: PySpark, Python, SQL, Azure, Databricks, dbt, Airflow, Power BI"></texta
   </div>
 </div>
 
+<!-- MY RESUMES MODAL -->
+<div class="modal-overlay" id="resumes-modal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div style="font-size:1.2rem;font-weight:800;color:var(--navy)">My Resumes</div>
+      <button class="modal-close" onclick="closeMyResumesModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="resume-upload-error" style="display:none;background:#FEF2F2;border:1px solid #FECACA;color:#DC2626;padding:.75rem 1rem;border-radius:10px;font-size:.85rem;margin-bottom:1rem"></div>
+
+      <div style="border:1px dashed var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem">
+        <label style="font-size:.8rem;font-weight:600;color:var(--navy);display:block;margin-bottom:.4rem">Label (optional)</label>
+        <input type="text" id="resume-upload-label" placeholder="e.g. Backend resume" style="width:100%;padding:.6rem 1rem;border:1px solid var(--border);border-radius:10px;font-size:.9rem;margin-bottom:.75rem" />
+        <label style="font-size:.8rem;font-weight:600;color:var(--navy);display:block;margin-bottom:.4rem">Upload a file (PDF or DOCX)</label>
+        <input type="file" id="resume-upload-file" accept=".pdf,.docx" style="width:100%;margin-bottom:.75rem" />
+        <label style="font-size:.8rem;font-weight:600;color:var(--navy);display:block;margin-bottom:.4rem">— or paste text directly</label>
+        <textarea id="resume-upload-paste" placeholder="Paste resume text here…" style="width:100%;min-height:100px;padding:.6rem 1rem;border:1px solid var(--border);border-radius:10px;font-size:.85rem;margin-bottom:.75rem"></textarea>
+        <button class="apply-action" id="resume-upload-btn" onclick="handleResumeUpload()">Save Resume</button>
+      </div>
+
+      <div style="font-size:.8rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--slate);margin-bottom:.75rem">Saved Resumes</div>
+      <div id="resume-list"></div>
+    </div>
+  </div>
+</div>
+
 <style>
 .ai-step{}
 .step-indicator{display:flex;align-items:center;gap:0}
@@ -978,6 +1004,7 @@ async function updateAuthUI() {
   const navArea = document.getElementById('nav-auth-area');
   if (user) {
     navArea.innerHTML = `
+      <a href="#" class="btn-ghost" onclick="openMyResumesModal();return false;">My Resumes</a>
       <span style="font-size:.85rem;color:var(--slate);margin-right:.5rem">${user.email}</span>
       <a href="#" class="btn-ghost" onclick="handleSignOut();return false;">Sign out</a>
     `;
@@ -2069,12 +2096,126 @@ async function handleSignOut() {
   await sb.auth.signOut();
 }
 
+// ── MY RESUMES ────────────────────────────────────────────────────────────
+const MAX_RESUME_FILE_BYTES = 3 * 1024 * 1024; // 3MB, matches api/resume-upload.js
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function openMyResumesModal() {
+  document.getElementById('resumes-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  await loadResumeList();
+}
+
+function closeMyResumesModal() {
+  document.getElementById('resumes-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function loadResumeList() {
+  const listEl = document.getElementById('resume-list');
+  listEl.innerHTML = '<p style="color:var(--slate);font-size:.85rem">Loading…</p>';
+  const token = await getAuthToken();
+  const res = await fetch('/api/resumes', { headers: { Authorization: `Bearer ${token}` } });
+  const data = await res.json();
+  if (!res.ok) {
+    listEl.innerHTML = `<p style="color:#DC2626;font-size:.85rem">${data.error || 'Failed to load resumes'}</p>`;
+    return;
+  }
+  if (!data.resumes.length) {
+    listEl.innerHTML = '<p style="color:var(--slate);font-size:.85rem">No resumes saved yet.</p>';
+    return;
+  }
+  listEl.innerHTML = data.resumes.map(r => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem 1rem;border:1px solid var(--border);border-radius:10px;margin-bottom:.6rem">
+      <div>
+        <div style="font-weight:700;font-size:.9rem;color:var(--navy)">${r.label}</div>
+        <div style="font-size:.75rem;color:var(--slate)">${r.file_name || 'Pasted text'} · ${new Date(r.created_at).toLocaleDateString()}</div>
+      </div>
+      <button style="background:none;border:none;color:#DC2626;cursor:pointer;font-size:.85rem;font-weight:600" onclick="deleteResume('${r.id}')">Delete</button>
+    </div>
+  `).join('');
+}
+
+async function handleResumeUpload() {
+  const errorEl = document.getElementById('resume-upload-error');
+  errorEl.style.display = 'none';
+  const label = document.getElementById('resume-upload-label').value.trim();
+  const fileInput = document.getElementById('resume-upload-file');
+  const pastedText = document.getElementById('resume-upload-paste').value.trim();
+  const btn = document.getElementById('resume-upload-btn');
+
+  const file = fileInput.files[0];
+  if (!file && !pastedText) {
+    errorEl.textContent = 'Upload a file or paste resume text.';
+    errorEl.style.display = 'block';
+    return;
+  }
+  if (file && file.size > MAX_RESUME_FILE_BYTES) {
+    errorEl.textContent = 'File too large (max 3MB).';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = 'Saving…';
+  btn.disabled = true;
+
+  const token = await getAuthToken();
+  let body;
+  if (file) {
+    const fileBase64 = await fileToBase64(file);
+    body = { label, fileName: file.name, fileBase64, mimeType: file.type };
+  } else {
+    body = { label, pastedText };
+  }
+
+  const res = await fetch('/api/resume-upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json();
+
+  btn.textContent = 'Save Resume';
+  btn.disabled = false;
+
+  if (!res.ok) {
+    errorEl.textContent = data.error || 'Failed to save resume';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  document.getElementById('resume-upload-label').value = '';
+  document.getElementById('resume-upload-file').value = '';
+  document.getElementById('resume-upload-paste').value = '';
+  await loadResumeList();
+}
+
+async function deleteResume(id) {
+  const token = await getAuthToken();
+  await fetch(`/api/resumes?id=${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  await loadResumeList();
+}
+
 // Close AI modal on overlay click
 document.getElementById('ai-modal').addEventListener('click', function(e) {
   if (e.target === this) closeAIModal();
 });
 document.getElementById('auth-modal').addEventListener('click', function(e) {
   if (e.target === this) closeAuthModal();
+});
+document.getElementById('resumes-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeMyResumesModal();
 });
 </script>
 </body>
