@@ -52,3 +52,7 @@ CREATE POLICY "Public read" ON jobs
 -- Only service role can insert/update/delete (used by scraper)
 CREATE POLICY "Service write" ON jobs
   FOR ALL USING (auth.role() = 'service_role');
+
+-- Base table grants (required in addition to RLS policies above)
+GRANT SELECT ON jobs TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON jobs TO service_role;
