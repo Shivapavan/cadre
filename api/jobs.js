@@ -12,6 +12,7 @@ module.exports = async function handler(req, res) {
   const {
     cat    = "all",
     emp    = "all",
+    remote = "",
     search = "",
     page   = "1",
     limit  = "24",
@@ -33,13 +34,19 @@ module.exports = async function handler(req, res) {
     query = query.eq("cat", cat);
   }
 
-  // Employment type filter
+  // Employment type filter — comma-separated list for multi-select
   if (emp && emp !== "all") {
-    if (emp === "remote") {
-      query = query.eq("is_remote", true);
-    } else {
-      query = query.eq("emp_type", emp);
+    const empTypes = emp.split(",").map((s) => s.trim()).filter(Boolean);
+    if (empTypes.length === 1) {
+      query = query.eq("emp_type", empTypes[0]);
+    } else if (empTypes.length > 1) {
+      query = query.in("emp_type", empTypes);
     }
+  }
+
+  // Remote filter — independent of employment type, combinable with it
+  if (remote === "1" || remote === "true") {
+    query = query.eq("is_remote", true);
   }
 
   // Full-text search across title, company, description

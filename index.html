@@ -1496,7 +1496,8 @@ const INTEL = [
 
 // STATE
 let activeCategory = 'all';
-let activeEmpType = 'all';
+let activeEmpTypes = new Set(); // multi-select: 'fulltime' | 'contract' | 'c2c' | 'parttime'
+let activeRemoteOnly = false;   // independent toggle, combinable with any employment type(s)
 let searchQuery = '';
 
 const EMP_LABELS = {fulltime:'Full-Time',contract:'Contract W2',c2c:'C2C / 1099',parttime:'Part-Time'};
@@ -1513,10 +1514,10 @@ function getFilteredJobs() {
     j._origIdx = i;
     const emp = j.empType || 'fulltime';
     const catOk = activeCategory === 'all' || j.cat === activeCategory;
-    const empOk = activeEmpType === 'all' ||
-      (activeEmpType === 'remote' ? j.remote : emp === activeEmpType);
+    const empOk = activeEmpTypes.size === 0 || activeEmpTypes.has(emp);
+    const remoteOk = !activeRemoteOnly || j.remote;
     const searchOk = jobMatchesSearch(j, searchQuery);
-    return catOk && empOk && searchOk;
+    return catOk && empOk && remoteOk && searchOk;
   });
 }
 
@@ -1550,7 +1551,7 @@ function renderJobs() {
   }
 
   noRes.style.display = 'none';
-  const isFiltered = searchQuery || activeCategory !== 'all' || activeEmpType !== 'all';
+  const isFiltered = searchQuery || activeCategory !== 'all' || activeEmpTypes.size > 0 || activeRemoteOnly;
   count.textContent = isFiltered
     ? `${filtered.length} role${filtered.length !== 1 ? 's' : ''} found`
     : `${JOBS.length} senior roles · updated daily`;
@@ -1704,12 +1705,30 @@ document.querySelectorAll('.filter-pill').forEach(p => {
   });
 });
 
-// FILTER PILLS — employment type
+// FILTER PILLS — employment type (multi-select) + remote (independent toggle)
 document.querySelectorAll('.emp-pill').forEach(p => {
   p.addEventListener('click', function() {
-    document.querySelectorAll('.emp-pill').forEach(x => x.classList.remove('active'));
-    this.classList.add('active');
-    activeEmpType = this.dataset.emp;
+    const val = this.dataset.emp;
+    const allPill = document.querySelector('.emp-pill[data-emp="all"]');
+
+    if (val === 'all') {
+      activeEmpTypes.clear();
+      activeRemoteOnly = false;
+      document.querySelectorAll('.emp-pill').forEach(x => x.classList.remove('active'));
+      allPill.classList.add('active');
+    } else if (val === 'remote') {
+      activeRemoteOnly = !activeRemoteOnly;
+      this.classList.toggle('active', activeRemoteOnly);
+      allPill.classList.remove('active');
+    } else {
+      if (activeEmpTypes.has(val)) activeEmpTypes.delete(val);
+      else activeEmpTypes.add(val);
+      this.classList.toggle('active', activeEmpTypes.has(val));
+      allPill.classList.remove('active');
+    }
+
+    if (activeEmpTypes.size === 0 && !activeRemoteOnly) allPill.classList.add('active');
+
     renderJobs();
   });
 });
@@ -1744,9 +1763,10 @@ let isFetching  = false;
 
 function buildApiUrl(page) {
   const params = new URLSearchParams({ page, limit: 24 });
-  if (activeCategory !== 'all') params.set('cat', activeCategory);
-  if (activeEmpType !== 'all')  params.set('emp', activeEmpType);
-  if (searchQuery)              params.set('search', searchQuery);
+  if (activeCategory !== 'all')  params.set('cat', activeCategory);
+  if (activeEmpTypes.size > 0)   params.set('emp', [...activeEmpTypes].join(','));
+  if (activeRemoteOnly)          params.set('remote', '1');
+  if (searchQuery)               params.set('search', searchQuery);
   return `/api/jobs?${params}`;
 }
 
