@@ -234,9 +234,18 @@ def is_allowlisted_technical(title: str) -> bool:
     t = title.lower()
     return any(kw in t for kw in TECH_TITLE_ALLOWLIST) and is_technical_role(title)
 
-def is_senior(title: str) -> bool:
+# Tiered by title seniority so cards show a realistic YOE instead of a flat
+# "5+ years" for every senior-and-up role — a Director/VP or Distinguished
+# Engineer posting needs 15-20 years, not the same "5+" as a Senior posting.
+def experience_level(title: str) -> tuple:
     t = title.lower()
-    return any(x in t for x in ["senior","staff","principal","lead","architect","manager","director","head of","vp ","vice president","distinguished"])
+    if any(x in t for x in ["vp ", "vice president", "head of", "director", "distinguished"]):
+        return "Director / VP", "15+ years"
+    if any(x in t for x in ["principal", "staff", "architect"]):
+        return "Staff / Principal", "10+ years"
+    if any(x in t for x in ["senior", "lead", "manager"]):
+        return "Senior", "5+ years"
+    return "Mid-Senior", "3+ years"
 
 def job_id(source: str, company_slug: str, ext_id) -> str:
     return hashlib.sha1(f"{source}:{company_slug}:{ext_id}".encode()).hexdigest()[:20]
@@ -341,8 +350,8 @@ def fetch_greenhouse() -> list:
                 "posted_label": posted_label(updated),
                 "is_new":       (now - updated).days < 3,
                 "tc":           "Competitive",
-                "level":        "Senior" if is_senior(title) else "Mid-Senior",
-                "yoe":          "5+ years" if is_senior(title) else "3+ years",
+                "level":        experience_level(title)[0],
+                "yoe":          experience_level(title)[1],
                 "skills":       skills,
                 "visa":         "",
                 "description":  desc,
@@ -406,8 +415,8 @@ def fetch_lever() -> list:
                 "posted_label": posted_label(created),
                 "is_new":       (now - created).days < 3,
                 "tc":           "Competitive",
-                "level":        "Senior" if is_senior(title) else "Mid-Senior",
-                "yoe":          "5+ years" if is_senior(title) else "3+ years",
+                "level":        experience_level(title)[0],
+                "yoe":          experience_level(title)[1],
                 "skills":       skills,
                 "visa":         "",
                 "description":  desc,
@@ -467,8 +476,8 @@ def fetch_ashby() -> list:
                 "posted_label": posted_label(created),
                 "is_new":       (now - created).days < 3,
                 "tc":           "Competitive",
-                "level":        "Senior" if is_senior(title) else "Mid-Senior",
-                "yoe":          "5+ years" if is_senior(title) else "3+ years",
+                "level":        experience_level(title)[0],
+                "yoe":          experience_level(title)[1],
                 "skills":       skills,
                 "visa":         "",
                 "description":  desc,
@@ -508,6 +517,32 @@ ADZUNA_SEARCHES = [
     ("full stack developer react node", "backend"),
     ("data analyst sql power bi",       "data"),
 
+    # Higher-seniority variants — Adzuna's `what=` is an AND match on literal
+    # words, so a query containing "senior" never surfaces a "Principal" or
+    # "Director" posting that doesn't also literally say "senior". Without
+    # these, roles requiring 10-20 years (Staff/Principal/Director/VP titles)
+    # were effectively invisible to search, even though experience_level()
+    # already knows how to label them once found.
+    ("staff data engineer",             "data"),
+    ("principal data engineer",         "data"),
+    ("director data engineering",       "data"),
+    ("staff software engineer java",    "backend"),
+    ("principal engineer backend",      "backend"),
+    ("director of engineering",         "backend"),
+    ("staff devops engineer",           "devops"),
+    ("principal cloud architect",       "devops"),
+    ("staff frontend engineer",         "frontend"),
+    ("principal frontend architect",    "frontend"),
+    ("staff machine learning engineer", "ml"),
+    ("principal machine learning engineer","ml"),
+    ("staff embedded engineer",         "embedded"),
+    ("principal vlsi engineer",         "embedded"),
+    ("principal security engineer",     "security"),
+    ("director of security",            "security"),
+    ("director product management",     "pm"),
+    ("vp of product",                   "pm"),
+    ("staff android engineer",          "mobile"),
+    ("staff ios engineer",              "mobile"),
 ]
 
 # C2C / corp-to-corp — Dice's own RSS feed is dead (their public API shut down
@@ -592,8 +627,8 @@ def fetch_wynn() -> list:
             "posted_label": posted_label(posted),
             "is_new":       (now - posted).days < 3,
             "tc":           "Competitive",
-            "level":        "Senior" if is_senior(title) else "Mid-Senior",
-            "yoe":          "5+ years" if is_senior(title) else "3+ years",
+            "level":        experience_level(title)[0],
+            "yoe":          experience_level(title)[1],
             "skills":       extract_skills(title),
             "visa":         "",
             "description":  desc,
@@ -688,8 +723,8 @@ def fetch_oracle_hcm() -> list:
                         "posted_label": posted_label(posted),
                         "is_new":       (now - posted).days < 3,
                         "tc":           "Competitive",
-                        "level":        "Senior" if is_senior(title) else "Mid-Senior",
-                        "yoe":          "5+ years" if is_senior(title) else "3+ years",
+                        "level":        experience_level(title)[0],
+                        "yoe":          experience_level(title)[1],
                         "skills":       extract_skills(title + " " + desc),
                         "visa":         "",
                         "description":  desc,
@@ -757,8 +792,8 @@ def fetch_disney() -> list:
             "posted_label": posted_label(posted),
             "is_new":       (now - posted).days < 3,
             "tc":           "Competitive",
-            "level":        "Senior" if is_senior(title) else "Mid-Senior",
-            "yoe":          "5+ years" if is_senior(title) else "3+ years",
+            "level":        experience_level(title)[0],
+            "yoe":          experience_level(title)[1],
             "skills":       extract_skills(title),
             "visa":         "",
             "description":  title,
@@ -839,8 +874,8 @@ def fetch_adzuna() -> list:
                     "posted_label": posted_label(created),
                     "is_new":       (now - created).days < 3,
                     "tc":           "Competitive",
-                    "level":        "Senior" if is_senior(title) else "Mid-Senior",
-                    "yoe":          "5+ years" if is_senior(title) else "3+ years",
+                    "level":        experience_level(title)[0],
+                    "yoe":          experience_level(title)[1],
                     "skills":       skills,
                     "visa":         "H1B OK · H4 EAD OK" if is_c2c else "",
                     "description":  desc,
@@ -906,8 +941,8 @@ def main():
                     "is_remote":"remote" in loc.lower() or "remote" in title.lower(),
                     "posted_at":updated.isoformat(),"posted_label":posted_label(updated),
                     "is_new":(now-updated).days < 3,
-                    "tc":"Market Rate","level":"Senior" if is_senior(title) else "Mid",
-                    "yoe":"5+ years" if is_senior(title) else "3+ years",
+                    "tc":"Market Rate","level":experience_level(title)[0],
+                    "yoe":experience_level(title)[1],
                     "skills":extract_skills(title+" "+desc),
                     "visa":"H1B OK · H4 EAD OK · GC · USC",
                     "description":desc,"apply_url":j.get("absolute_url",""),
